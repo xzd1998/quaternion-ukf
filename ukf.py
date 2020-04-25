@@ -7,15 +7,14 @@ Description: Unscented Kalman Filter for orientation tracking
 
 import numpy as np
 import argparse
-import scipy
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
 from quaternion import Quaternion
 
+
 class UKF(object):
 
     def __init__(self, data_num=1):
-
         self.num = data_num
 
         # Noise parameters for UKF
@@ -25,7 +24,7 @@ class UKF(object):
         self.R = np.identity(n) * np.concatenate((Rr, Rw))
         self.Q = np.identity(n) * 2.991
         self.Q[:3, :3] *= 2
-        
+
         # Get parameters set up before we get to filtering the data
         imu = loadmat("imu/imuRaw" + str(self.num) + ".mat")
 
@@ -41,7 +40,7 @@ class UKF(object):
 
         # Initialize covariance history and state history
         self.mu = np.zeros((n + 1, self.vals.shape[-1]))
-        self.mu[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])     
+        self.mu[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])
         self.P = np.zeros((n, n, self.mu.shape[-1]))
         self.P[..., 0] = np.identity(n) * .5
 
@@ -54,14 +53,14 @@ class UKF(object):
     def estimate_state(self):
 
         # Hardcode learned parameters for acceleration/gyro since can't access training script in autograder
-        mr = np.array([-0.09363796, -0.09438229,  0.09449341])
-        br = np.array([47.88161084,  47.23512485, -47.39899347])
+        mr = np.array([-0.09363796, -0.09438229, 0.09449341])
+        br = np.array([47.88161084, 47.23512485, -47.39899347])
         mw = np.array([0.01546466, 0.01578361, 0.01610787])
 
         self.vals[:3, :] = self.vals[:3, :] * mr.reshape(3, 1) + br.reshape(3, 1)
         self.vals[3:, :] = self.vals[3:, :] * mw.reshape(3, 1)
         self.vals[3:, :] = self.vals[3:, :] - ((np.mean(self.vals[3:, :50], axis=1) +
-            np.mean(self.vals[3:, -50:], axis=1))/2).reshape(3, 1)
+                                                np.mean(self.vals[3:, -50:], axis=1)) / 2).reshape(3, 1)
         self.vals[:3] = self.vals[:3] / np.linalg.norm(self.vals[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
@@ -69,12 +68,12 @@ class UKF(object):
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.t_imu[i] - self.t_imu[i - 1]
-            self.mu[:, i], self.P[..., i] = self.ukf(self.P[..., i-1], self.mu[:, i - 1], self.vals[:, i], dt)
+            self.mu[:, i], self.P[..., i] = self.filter(self.P[..., i - 1], self.mu[:, i - 1], self.vals[:, i], dt)
             bot_rots[..., i] = Quaternion(self.mu[:4, i]).q_to_rot()
 
         return bot_rots
 
-    def ukf(self, P_last, mu_last, z_this, dt):
+    def filter(self, P_last, mu_last, z_this, dt):
 
         # 2n sigma points
         n = P_last.shape[0]
@@ -90,7 +89,7 @@ class UKF(object):
 
         wW = W[3:]
         w_last = mu_last[4:]
-        w_sigpt = w_last.reshape(-1, 1)*np.ones(wW.shape) + wW
+        w_sigpt = w_last.reshape(-1, 1) * np.ones(wW.shape) + wW
 
         # Equations 9-11: form q_delta
         ad = np.linalg.norm(w_sigpt, axis=0) * dt
@@ -102,7 +101,7 @@ class UKF(object):
             ed[:, not_ind] = w_sigpt[:, not_ind].astype(float) * dt / ad[not_ind]
         else:
             ed = -w_sigpt.astype(float) * dt / ad
-        qd = np.array([np.cos(ad * .5), ed[0] * np.sin(ad *.5), ed[1] * np.sin(ad * .5), ed[2] * np.sin(ad * .5)])
+        qd = np.array([np.cos(ad * .5), ed[0] * np.sin(ad * .5), ed[1] * np.sin(ad * .5), ed[2] * np.sin(ad * .5)])
         qd = Quaternion(qd.astype(float) / np.linalg.norm(qd, axis=0))
 
         # Equation 22: Apply non-linear function A with process noise of zero
@@ -128,7 +127,7 @@ class UKF(object):
         # Equation 27 and 40
         g = Quaternion(np.array([0, 0, 0, 1]))
         gp = qs.q_inv().multiply_q(g).multiply_q(qs)
-        Z = np.concatenate((gp.q[1:], Y[4:, :])) 
+        Z = np.concatenate((gp.q[1:], Y[4:, :]))
 
         Pk_bar /= W.shape[1]
 
@@ -192,9 +191,9 @@ class UKF(object):
 
     @staticmethod
     def R_to_angles(R):
-        roll = np.arctan2(R[2,1], R[2,2])
-        pitch = np.arctan2(-R[2,0], np.sqrt(np.square(R[2,1]) + np.square(R[2,2])))
-        yaw = np.arctan2(R[1,0], R[0,0])
+        roll = np.arctan2(R[2, 1], R[2, 2])
+        pitch = np.arctan2(-R[2, 0], np.sqrt(np.square(R[2, 1]) + np.square(R[2, 2])))
+        yaw = np.arctan2(R[1, 0], R[0, 0])
 
         return roll, pitch, yaw
 
@@ -203,7 +202,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-D", "--datanum", required=True, help="Number of data file (1 to 3 inclusive)")
-    
+
     args = vars(parser.parse_args())
 
     f = UKF(args["datanum"])
