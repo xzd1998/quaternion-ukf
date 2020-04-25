@@ -6,6 +6,7 @@ Description: Quaternion toolbox for UKF
 """
 
 import numpy as np
+from warnings import warn
 
 
 class QuaternionArray(object):
@@ -34,14 +35,22 @@ class QuaternionArray(object):
         if np.all(q_mean.q == 0):
             raise ValueError("Cannot find mean starting at zero quaternion")
 
+        i = 0
         for _ in range(iterations):
             err_quat = self.q_multiply(q_mean.inverse())  # Equation 52
+            err_quat = QuaternionArray(err_quat.q * np.sign(err_quat.q[0]))
             err_rot = err_quat.to_vector()
             err_rot_mean = np.mean(err_rot, axis=1)  # Equation 54
             err_quat_mean = QuaternionArray.from_vector(err_rot_mean)
             q_mean = err_quat_mean.q_multiply(q_mean)  # Equation 55
-            if np.linalg.norm(err_rot_mean) < 1e-5:
+
+            err = np.linalg.norm(err_rot_mean)
+            if err < 1e-5:
                 break
+            i += 1
+
+        if i == iterations - 1:
+            warn("Reached max number of iterations to find mean")
 
         return q_mean
 
@@ -78,7 +87,7 @@ class QuaternionArray(object):
             v[..., not_ind] = theta[not_ind].astype(float) / np.sin(theta[not_ind] * .5) * self.q[1:, not_ind]
             return v
         v = theta.astype(float) / np.sin(theta * .5) * self.q[1:]
-        return v.astype(float) / np.linalg.norm(v, axis=0)
+        return v.astype(float)  # / np.linalg.norm(v, axis=0)
 
     def inverse(self):
         """
@@ -126,10 +135,15 @@ class QuaternionArray(object):
     def __eq__(self, other):
         return self.q == other.q
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
 
+        n_digits = 5
+
         def get_elem_str(elem):
-            return str(round(elem, 3))
+            return str(round(elem, n_digits))
 
         characters = [c for c in __class__.__name__]
         characters.append('(')
