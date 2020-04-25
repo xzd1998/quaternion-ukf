@@ -1,38 +1,51 @@
-'''
+"""
 Filename: quaternion.py
 Author: Matt Lisle
 Date: 02/10/19
 Description: Quaternion toolbox for UKF
-'''
+"""
 
 import numpy as np
 
 
 class Quaternion(object):
+    DIMENSIONS = 4
 
     def __init__(self, q):
-        self.q = q
+        self.q = np.array(q)
 
-    def get_q(self):
-        return self.q
+    @property
+    def q(self):
+        return self._q
 
-    def find_q_mean(self, q_mean):
+    @q.setter
+    def q(self, array):
+        if array.shape[0] is not Quaternion.DIMENSIONS:
+            raise ValueError("Invalid number of dimensions {}".format(q.shape[0]))
+        self._q = array
+
+    def find_q_mean(self, q_mean, iterations=100):
         """
-        Finds the mean of a set of quaternions using gradient descent
+        Finds the mean of a quaternion or array of quaternions using gradient descent
+        :param iterations: max number of iterations
         :param q_mean: initial mean guess
         :return: final mean
         """
-        for i in range(100):
-            err_quat = self.multiply_q(q_mean.q_inv())  # Equation 52
-            err_rot = err_quat.q_to_v()
+        if np.all(q_mean.q == 0):
+            raise ValueError("Cannot find mean starting at zero quaternion")
+
+        for i in range(iterations):
+            err_quat = self.q_multiply(q_mean.inverse())  # Equation 52
+            err_rot = err_quat.to_vector()
             err_rot_mean = np.mean(err_rot, axis=1)  # Equation 54
-            err_quat_mean = Quaternion.v_to_q(err_rot_mean)
-            q_mean = err_quat_mean.multiply_q(q_mean)  # Equation 55
+            err_quat_mean = Quaternion.from_vector(err_rot_mean)
+            q_mean = err_quat_mean.q_multiply(q_mean)  # Equation 55
             if np.linalg.norm(err_rot_mean) < 1e-5:
                 break
+
         return q_mean
 
-    def multiply_q(self, q2):
+    def q_multiply(self, q2):
         """
         Multiplies two quaternions (or arrays of quaternions) together taking advantage of numpy broadcasting
         :param q2: quaternion to multiply with
@@ -48,7 +61,7 @@ class Quaternion(object):
         result[3] = self.q[0] * q2.q[3] - self.q[1] * q2.q[2] + self.q[2] * q2.q[1] + self.q[3] * q2.q[0]
         return Quaternion(result.astype(float) / np.linalg.norm(result, axis=0))
 
-    def q_to_v(self):
+    def to_vector(self):
         """
         Converts a quaternion or array of quaternions to a vector or array of vectors
         :return: vector(s) as a numpy array
@@ -67,7 +80,7 @@ class Quaternion(object):
         v = theta.astype(float) / np.sin(theta * .5) * self.q[1:]
         return v.astype(float) / np.linalg.norm(v, axis=0)
 
-    def q_inv(self):
+    def inverse(self):
         """
         :return: the inverse of a quaternion or array of quaternions
         """
@@ -75,20 +88,20 @@ class Quaternion(object):
         qinv /= np.linalg.norm(qinv)
         return Quaternion(qinv)
 
-    def q_to_rot(self):
+    def to_rotation_matrix(self):
         """
         Converts quaternion or array of quaternions to a rotation matrix or matrices
         :return: rotation matrix or matrices as numpy arrays
         """
         u0 = self.q[0]
         u = self.q[1:].reshape(3, 1)
-        uhat = Quaternion.skew_from_vect(u)
+        uhat = np.array([[0, -u[2], u[1]], [u[2], 0, -u[0]], [-u[1], u[0], 0]])
         R = (u0 ** 2 - np.matmul(u.T, u)) * np.identity(3) + 2 * u0 * uhat + 2 * np.matmul(u, u.T)
 
         return R.T
 
     @staticmethod
-    def v_to_q(v):
+    def from_vector(v):
         """
         Converts vector or array of vectors to a quaternion or array of quaternions
         :param v: vector to convert
@@ -107,10 +120,8 @@ class Quaternion(object):
         return Quaternion(q.astype(float) / np.linalg.norm(q, axis=0))
 
     @staticmethod
-    def skew_from_vect(v):
-        """
-        Helper method to get skew-symmetric matrix from vector
-        :param v: input vector
-        :return: vector as a skew-symmetric matrix
-        """
-        return np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+    def group(*qs):
+        return Quaternion(np.array([q.q for q in qs]).T)
+
+    def __eq__(self, other):
+        return self.q == other.q

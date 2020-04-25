@@ -1,9 +1,9 @@
-'''
+"""
 Filename: ukf.py
 Author: Matt Lisle
 Date: 02/19/19
 Description: Unscented Kalman Filter for orientation tracking
-'''
+"""
 
 import numpy as np
 import argparse
@@ -64,12 +64,12 @@ class UKF(object):
         self.vals[:3] = self.vals[:3] / np.linalg.norm(self.vals[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
-        bot_rots[..., 0] = Quaternion(self.mu[:4, 0]).q_to_rot()
+        bot_rots[..., 0] = Quaternion(self.mu[:4, 0]).to_rotation_matrix()
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.t_imu[i] - self.t_imu[i - 1]
             self.mu[:, i], self.P[..., i] = self.filter(self.P[..., i - 1], self.mu[:, i - 1], self.vals[:, i], dt)
-            bot_rots[..., i] = Quaternion(self.mu[:4, i]).q_to_rot()
+            bot_rots[..., i] = Quaternion(self.mu[:4, i]).to_rotation_matrix()
 
         return bot_rots
 
@@ -83,9 +83,9 @@ class UKF(object):
         W = np.concatenate((np.zeros((n, 1)), W), axis=1)
 
         # Equation 34: Form sigma points based on prior mean and covariance data
-        qW = Quaternion.v_to_q(W[:3])
+        qW = Quaternion.from_vector(W[:3])
         q_last = Quaternion(mu_last[:4])
-        q_sigpt = q_last.multiply_q(qW)
+        q_sigpt = q_last.q_multiply(qW)
 
         wW = W[3:]
         w_last = mu_last[4:]
@@ -105,7 +105,7 @@ class UKF(object):
         qd = Quaternion(qd.astype(float) / np.linalg.norm(qd, axis=0))
 
         # Equation 22: Apply non-linear function A with process noise of zero
-        qY = q_sigpt.multiply_q(qd)
+        qY = q_sigpt.q_multiply(qd)
         Y = np.concatenate((qY.q, w_sigpt))
 
         # Equations 52-55: Use mean-finding algorithm to satisfy Equation 38
@@ -117,7 +117,7 @@ class UKF(object):
         mu_this_est = np.concatenate((q_mean.q.reshape(-1), w_mean.reshape(-1)))
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
-        rWp = q_mean.q_inv().multiply_q(qs).q_to_v()
+        rWp = q_mean.inverse().q_multiply(qs).to_vector()
         wWp = Y[4:, :] - w_mean.reshape(-1, 1)
         Wp = np.concatenate((rWp, wWp))
 
@@ -126,7 +126,7 @@ class UKF(object):
 
         # Equation 27 and 40
         g = Quaternion(np.array([0, 0, 0, 1]))
-        gp = qs.q_inv().multiply_q(g).multiply_q(qs)
+        gp = qs.inverse().q_multiply(g).q_multiply(qs)
         Z = np.concatenate((gp.q[1:], Y[4:, :]))
 
         Pk_bar /= W.shape[1]
@@ -150,12 +150,12 @@ class UKF(object):
 
         # Equation 74
         r_this = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
-        q_this = Quaternion.v_to_q(r_this[:3])
+        q_this = Quaternion.from_vector(r_this[:3])
         w_this = r_this[3:]
 
         # Equation 46
         mu_this = np.zeros(mu_this_est.shape)
-        mu_this[:4] = Quaternion(mu_this_est[:4]).multiply_q(q_this).q
+        mu_this[:4] = Quaternion(mu_this_est[:4]).q_multiply(q_this).q
         mu_this[4:] = mu_this_est[4:] + w_this
 
         # Equation 75:
