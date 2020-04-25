@@ -9,7 +9,7 @@ import numpy as np
 import argparse
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
-from quaternionarray import QuaternionArray
+from quaternion_array import QuaternionArray
 
 
 class UKF(object):
