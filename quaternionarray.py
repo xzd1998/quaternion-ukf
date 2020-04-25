@@ -8,11 +8,11 @@ Description: Quaternion toolbox for UKF
 import numpy as np
 
 
-class Quaternion(object):
+class QuaternionArray(object):
     DIMENSIONS = 4
 
     def __init__(self, q):
-        self.q = np.array(q)
+        self.q = np.array(q) / np.linalg.norm(q, axis=0)
 
     @property
     def q(self):
@@ -20,7 +20,7 @@ class Quaternion(object):
 
     @q.setter
     def q(self, array):
-        if array.shape[0] is not Quaternion.DIMENSIONS:
+        if array.shape[0] is not QuaternionArray.DIMENSIONS:
             raise ValueError("Invalid number of dimensions {}".format(q.shape[0]))
         self._q = array
 
@@ -34,11 +34,11 @@ class Quaternion(object):
         if np.all(q_mean.q == 0):
             raise ValueError("Cannot find mean starting at zero quaternion")
 
-        for i in range(iterations):
+        for _ in range(iterations):
             err_quat = self.q_multiply(q_mean.inverse())  # Equation 52
             err_rot = err_quat.to_vector()
             err_rot_mean = np.mean(err_rot, axis=1)  # Equation 54
-            err_quat_mean = Quaternion.from_vector(err_rot_mean)
+            err_quat_mean = QuaternionArray.from_vector(err_rot_mean)
             q_mean = err_quat_mean.q_multiply(q_mean)  # Equation 55
             if np.linalg.norm(err_rot_mean) < 1e-5:
                 break
@@ -59,7 +59,7 @@ class Quaternion(object):
         result[1] = self.q[0] * q2.q[1] + self.q[1] * q2.q[0] - self.q[2] * q2.q[3] + self.q[3] * q2.q[2]
         result[2] = self.q[0] * q2.q[2] + self.q[1] * q2.q[3] + self.q[2] * q2.q[0] - self.q[3] * q2.q[1]
         result[3] = self.q[0] * q2.q[3] - self.q[1] * q2.q[2] + self.q[2] * q2.q[1] + self.q[3] * q2.q[0]
-        return Quaternion(result.astype(float) / np.linalg.norm(result, axis=0))
+        return QuaternionArray(result.astype(float) / np.linalg.norm(result, axis=0))
 
     def to_vector(self):
         """
@@ -86,7 +86,7 @@ class Quaternion(object):
         """
         qinv = np.array([self.q[0], -self.q[1], -self.q[2], -self.q[3]]).astype(float)
         qinv /= np.linalg.norm(qinv)
-        return Quaternion(qinv)
+        return QuaternionArray(qinv)
 
     def to_rotation_matrix(self):
         """
@@ -117,11 +117,51 @@ class Quaternion(object):
         else:
             b = v.astype(float) / a
         q = np.array([np.cos(a * .5), b[0] * np.sin(a * .5), b[1] * np.sin(a * .5), b[2] * np.sin(a * .5)])
-        return Quaternion(q.astype(float) / np.linalg.norm(q, axis=0))
+        return QuaternionArray(q.astype(float) / np.linalg.norm(q, axis=0))
 
     @staticmethod
     def group(*qs):
-        return Quaternion(np.array([q.q for q in qs]).T)
+        return QuaternionArray(np.array([q.q for q in qs]).T)
 
     def __eq__(self, other):
         return self.q == other.q
+
+    def __str__(self):
+
+        def get_elem_str(elem):
+            return str(round(elem, 3))
+
+        characters = [c for c in __class__.__name__]
+        characters.append('(')
+        characters.append('\n')
+        quaternions = self.q.reshape(QuaternionArray.DIMENSIONS, -1)
+        axes = ['w', 'i', 'j', 'k']
+
+        max_chars = [0, 0, 0, 0]
+        for row in range(quaternions.shape[0]):
+            for col in range(quaternions.shape[1]):
+
+                n_chars = len(get_elem_str(quaternions[row, col]))
+
+                if n_chars > max_chars[row]:
+                    max_chars[row] = n_chars
+
+        for idx in range(quaternions.shape[1]):
+            characters.append(' ')
+
+            row = 0
+            for (element, axis) in zip(quaternions[:, idx], axes):
+                elem_str = get_elem_str(element)
+
+                for _ in range(max_chars[row] - len(elem_str) + 1):
+                    characters.append(' ')
+
+                characters += [c for c in get_elem_str(element)]
+                characters += axis
+                row += 1
+
+            characters.append('\n')
+
+        characters.append(')')
+
+        return "".join(characters)

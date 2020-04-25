@@ -9,7 +9,7 @@ import numpy as np
 import argparse
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
-from quaternion import Quaternion
+from quaternionarray import QuaternionArray
 
 
 class UKF(object):
@@ -64,12 +64,12 @@ class UKF(object):
         self.vals[:3] = self.vals[:3] / np.linalg.norm(self.vals[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
-        bot_rots[..., 0] = Quaternion(self.mu[:4, 0]).to_rotation_matrix()
+        bot_rots[..., 0] = QuaternionArray(self.mu[:4, 0]).to_rotation_matrix()
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.t_imu[i] - self.t_imu[i - 1]
             self.mu[:, i], self.P[..., i] = self.filter(self.P[..., i - 1], self.mu[:, i - 1], self.vals[:, i], dt)
-            bot_rots[..., i] = Quaternion(self.mu[:4, i]).to_rotation_matrix()
+            bot_rots[..., i] = QuaternionArray(self.mu[:4, i]).to_rotation_matrix()
 
         return bot_rots
 
@@ -83,8 +83,8 @@ class UKF(object):
         W = np.concatenate((np.zeros((n, 1)), W), axis=1)
 
         # Equation 34: Form sigma points based on prior mean and covariance data
-        qW = Quaternion.from_vector(W[:3])
-        q_last = Quaternion(mu_last[:4])
+        qW = QuaternionArray.from_vector(W[:3])
+        q_last = QuaternionArray(mu_last[:4])
         q_sigpt = q_last.q_multiply(qW)
 
         wW = W[3:]
@@ -102,7 +102,7 @@ class UKF(object):
         else:
             ed = -w_sigpt.astype(float) * dt / ad
         qd = np.array([np.cos(ad * .5), ed[0] * np.sin(ad * .5), ed[1] * np.sin(ad * .5), ed[2] * np.sin(ad * .5)])
-        qd = Quaternion(qd.astype(float) / np.linalg.norm(qd, axis=0))
+        qd = QuaternionArray(qd.astype(float) / np.linalg.norm(qd, axis=0))
 
         # Equation 22: Apply non-linear function A with process noise of zero
         qY = q_sigpt.q_multiply(qd)
@@ -110,8 +110,8 @@ class UKF(object):
 
         # Equations 52-55: Use mean-finding algorithm to satisfy Equation 38
         Y[:4, :] = Y[:4, :] * np.sign(Y[0, :])
-        q1 = Quaternion(Y[:4, 0])
-        qs = Quaternion(Y[:4, :])
+        q1 = QuaternionArray(Y[:4, 0])
+        qs = QuaternionArray(Y[:4, :])
         q_mean = qs.find_q_mean(q1)
         w_mean = np.mean(Y[4:, :], axis=1)
         mu_this_est = np.concatenate((q_mean.q.reshape(-1), w_mean.reshape(-1)))
@@ -125,7 +125,7 @@ class UKF(object):
         Pk_bar = np.matmul(Wp, Wp.T)
 
         # Equation 27 and 40
-        g = Quaternion(np.array([0, 0, 0, 1]))
+        g = QuaternionArray(np.array([0, 0, 0, 1]))
         gp = qs.inverse().q_multiply(g).q_multiply(qs)
         Z = np.concatenate((gp.q[1:], Y[4:, :]))
 
@@ -150,12 +150,12 @@ class UKF(object):
 
         # Equation 74
         r_this = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
-        q_this = Quaternion.from_vector(r_this[:3])
+        q_this = QuaternionArray.from_vector(r_this[:3])
         w_this = r_this[3:]
 
         # Equation 46
         mu_this = np.zeros(mu_this_est.shape)
-        mu_this[:4] = Quaternion(mu_this_est[:4]).q_multiply(q_this).q
+        mu_this[:4] = QuaternionArray(mu_this_est[:4]).q_multiply(q_this).q
         mu_this[4:] = mu_this_est[4:] + w_this
 
         # Equation 75:
