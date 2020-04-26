@@ -15,9 +15,11 @@ class Quaternions:
 
     def __init__(self, raw):
         array = np.array(raw)
+
         norm = np.linalg.norm(array, axis=0)
         if np.any(norm == 0):
             raise ZeroQuaternionException("Found zero quaternion in array: {}".format(array))
+
         self.array = array / np.linalg.norm(array, axis=0)
 
     @property
@@ -40,22 +42,19 @@ class Quaternions:
         if np.all(q_mean.array == 0):
             raise ValueError("Cannot find mean starting at zero quaternion")
 
-        i = 0
         for _ in range(iterations):
             err_quat = self.q_multiply(q_mean.inverse())  # Equation 52
             err_quat = Quaternions(err_quat.array * np.sign(err_quat.array[0]))
+
             err_rot = err_quat.to_vectors()
-            err_rot_mean = 0.1*np.mean(err_rot, axis=1)  # Equation 54
+            err_rot_mean = np.mean(err_rot, axis=1)  # Equation 54
+
             err_quat_mean = Quaternions.from_vector(err_rot_mean)
             q_mean = err_quat_mean.q_multiply(q_mean)  # Equation 55
 
             err = np.linalg.norm(err_rot_mean)
             if err < Quaternions.epsilon:
                 break
-            i += 1
-
-        if i == iterations - 1:
-            raise RuntimeError("Reached max number of iterations to find mean")
 
         return q_mean
 

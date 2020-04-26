@@ -81,8 +81,7 @@ class QuaternionsTest(unittest.TestCase):
         dist = 0.1
         q_near = Quaternions.from_vector([-np.pi + dist, 0, 0])
         q_pi = Quaternions.from_vector([np.pi, 0, 0])
-        q_expected = Quaternions.from_vector([(-np.pi + dist) / 2, 0, 0])
-        q_0 = Quaternions.from_vector([-np.pi + dist * 2, 0, 0])
-        # q_0 = QuaternionsTest.get_random_qs(1)[0]
+        q_expected = Quaternions.from_vector([-np.pi + dist / 2, 0, 0])
+        q_0 = QuaternionsTest.get_random_qs(1)[0]
         qs = Quaternions.from_quaternions(q_near, q_pi)
         self.assertEqual(qs.find_q_mean(q_0), q_expected)
