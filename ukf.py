@@ -22,7 +22,7 @@ class UKF:
         Rr = np.array([.05, .05, .15])
         Rw = np.array([.01 for i in range(3)])
         self.R = np.identity(n) * np.concatenate((Rr, Rw))
-        self.Q = np.identity(n) * 2.995
+        self.Q = np.identity(n) * 2.993
         self.Q[:3, :3] *= 2
 
         # Get parameters set up before we get to filtering the data
