@@ -47,7 +47,7 @@ class UKF:
     def run_ukf(self):
 
         self.rots = self.estimate_state()
-        self.roll, self.pitch, self.yaw = UKF.R_to_angles(self.rots)
+        self.roll, self.pitch, self.yaw = UKF.rots_to_angles(self.rots)
         self.make_plots()
 
     def estimate_state(self):
@@ -176,8 +176,8 @@ class UKF:
 
         labels = ["Roll", "Pitch", "Yaw"]
 
-        a = UKF.R_to_angles(r)
-        angs = UKF.R_to_angles(R)
+        a = UKF.rots_to_angles(r)
+        angs = UKF.rots_to_angles(R)
 
         for i in range(3):
             plt.figure(i)
@@ -190,12 +190,26 @@ class UKF:
         plt.show()
 
     @staticmethod
-    def R_to_angles(R):
+    def rots_to_angles(R):
         roll = np.arctan2(R[2, 1], R[2, 2])
         pitch = np.arctan2(-R[2, 0], np.sqrt(np.square(R[2, 1]) + np.square(R[2, 2])))
         yaw = np.arctan2(R[1, 0], R[0, 0])
 
         return roll, pitch, yaw
+
+    @staticmethod
+    def angles_to_rots(roll, pitch, yaw):
+        R = np.zeros((3, 3, roll.shape[0]))
+        R[0, 0] = np.cos(yaw) * np.cos(pitch)
+        R[1, 0] = np.sin(yaw) * np.cos(pitch)
+        R[2, 0] = -np.sin(yaw)
+        R[0, 1] = np.cos(yaw) * np.sin(pitch) * np.sin(roll) - np.sin(yaw) * np.cos(roll)
+        R[1, 1] = np.sin(yaw) * np.sin(pitch) * np.sin(roll) + np.cos(yaw) * np.cos(roll)
+        R[2, 1] = np.cos(pitch) * np.sin(roll)
+        R[0, 2] = np.cos(yaw) * np.sin(pitch) * np.cos(roll) + np.sin(yaw) * np.sin(roll)
+        R[1, 2] = np.sin(yaw) * np.sin(pitch) * np.cos(roll) - np.cos(yaw) * np.sin(roll)
+        R[2, 2] = np.cos(pitch) * np.cos(roll)
+        return R
 
 
 if __name__ == "__main__":
