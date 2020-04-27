@@ -26,7 +26,7 @@ class UKF:
         self.Q[:3, :3] *= 2
 
         # Get parameters set up before we get to filtering the data
-        imu = loadmat("imu/imuRaw" + str(self.num) + ".mat")
+        imu = loadmat("data/imu/imuRaw" + str(self.num) + ".mat")
 
         # IMU data
         self.vals = imu["vals"].astype(float)
@@ -164,8 +164,8 @@ class UKF:
         return mu_this, P_this
 
     def make_plots(self):
-        vicon = loadmat("vicon/viconRot" + str(self.num) + ".mat")
-        imu = loadmat("imu/imuRaw" + str(self.num) + ".mat")
+        vicon = loadmat("data/vicon/viconRot" + str(self.num) + ".mat")
+        imu = loadmat("data/imu/imuRaw" + str(self.num) + ".mat")
 
         R = vicon["rots"]
         t_vicon = vicon["ts"].reshape(-1)
@@ -190,26 +190,12 @@ class UKF:
         plt.show()
 
     @staticmethod
-    def rots_to_angles(R):
-        roll = np.arctan2(R[2, 1], R[2, 2])
-        pitch = np.arctan2(-R[2, 0], np.sqrt(np.square(R[2, 1]) + np.square(R[2, 2])))
-        yaw = np.arctan2(R[1, 0], R[0, 0])
+    def rots_to_angles(Rs):
+        roll = np.arctan2(Rs[2, 1], Rs[2, 2])
+        pitch = np.arctan2(-Rs[2, 0], np.sqrt(np.square(Rs[2, 1]) + np.square(Rs[2, 2])))
+        yaw = np.arctan2(Rs[1, 0], Rs[0, 0])
 
         return roll, pitch, yaw
-
-    @staticmethod
-    def angles_to_rots(roll, pitch, yaw):
-        R = np.zeros((3, 3, roll.shape[0]))
-        R[0, 0] = np.cos(yaw) * np.cos(pitch)
-        R[1, 0] = np.sin(yaw) * np.cos(pitch)
-        R[2, 0] = -np.sin(yaw)
-        R[0, 1] = np.cos(yaw) * np.sin(pitch) * np.sin(roll) - np.sin(yaw) * np.cos(roll)
-        R[1, 1] = np.sin(yaw) * np.sin(pitch) * np.sin(roll) + np.cos(yaw) * np.cos(roll)
-        R[2, 1] = np.cos(pitch) * np.sin(roll)
-        R[0, 2] = np.cos(yaw) * np.sin(pitch) * np.cos(roll) + np.sin(yaw) * np.sin(roll)
-        R[1, 2] = np.sin(yaw) * np.sin(pitch) * np.cos(roll) - np.cos(yaw) * np.sin(roll)
-        R[2, 2] = np.cos(pitch) * np.cos(roll)
-        return R
 
 
 if __name__ == "__main__":
