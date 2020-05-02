@@ -56,6 +56,7 @@ class UKF:
         mr = np.array([-0.09363796, -0.09438229, 0.09449341])
         br = np.array([47.88161084, 47.23512485, -47.39899347])
         mw = np.array([0.01546466, 0.01578361, 0.01610787])
+        # mw = np.ones(3) * -0.15
 
         self.vals[:3, :] = self.vals[:3, :] * mr.reshape(3, 1) + br.reshape(3, 1)
         self.vals[3:, :] = self.vals[3:, :] * mw.reshape(3, 1)

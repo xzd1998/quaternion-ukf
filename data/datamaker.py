@@ -1,25 +1,26 @@
 import numpy as np
 from scipy.constants import g
 
-import utilities
+from data import utilities
+from data.trajectoryplanner import *
 
 
 class DataMaker:
 
-    def __init__(self, T, dt, planner):
+    def __init__(self, planner):
 
-        if T < dt:
+        if planner.duration < planner.dt:
             raise ValueError("Total time can't be less than the increment")
 
-        self.ts = np.arange(0, T, dt)
+        self.ts = np.arange(0, planner.duration, planner.dt)
         n = self.ts.shape[0]
         angs = np.zeros((n, 3))
         vels = np.zeros((n, 3))
         accs = np.zeros((n, 3))
 
         def integrate(idx):
-            vels[idx + 1] = vels[idx] + (accs[idx + 1] + accs[idx]) * dt / 2
-            angs[idx + 1] = angs[idx] + (vels[idx + 1] + vels[idx]) * dt / 2
+            vels[idx + 1] = vels[idx] + (accs[idx + 1] + accs[idx]) * planner.dt / 2
+            angs[idx + 1] = angs[idx] + (vels[idx + 1] + vels[idx]) * planner.dt / 2
 
         for (i, t) in enumerate(self.ts[:-1]):
             for bound in planner.bounds:
@@ -28,62 +29,46 @@ class DataMaker:
                     accs[i + 1] = calculator(accs[i])
             integrate(i)
 
-        self.angs = angs.T
-        self.vels = vels.T
-        self.rots = utilities.angles_to_rots(self.angs[0], self.angs[1], self.angs[2])
+        self.angs_g = angs.T
+        self.vels_g = vels.T
+
+        # Rotation of the robot frame with respect to the global frame
+        self.rots_g = utilities.angles_to_rots(self.angs_g[0], self.angs_g[1], self.angs_g[2])
+
+        # Rotation of the global frame with respect to the robot frame
+        self.rots_r = np.zeros(self.rots_g.shape)
+        self.vels_r = np.zeros(self.vels_g.shape)
+        for i in range(self.rots_g.shape[-1]):
+            self.rots_r[..., i] = self.rots_g[..., i].T
+            self.vels_r[..., i] = np.matmul(self.rots_r[..., i], self.vels_g[..., i].reshape(3, 1)).reshape(-1)
 
     @property
     def zs(self):
-        return self.rots[:, -1]
+        return self.rots_g[:, -1]
 
     @property
     def gs(self):
-        return self.zs * np.array([-g, -g, g]).reshape(3, 1)
+        result = np.zeros((self.rots_g.shape[0], 1, self.rots_g.shape[-1]))
+        gravity = np.array([0, 0, g]).reshape(3, 1)
+        for i in range(self.rots_g.shape[-1]):
+            result[..., i] = np.matmul(self.rots_r[..., i], gravity)
+        return result.reshape(3, -1)
 
+    @property
+    def t_imu(self):
+        return self.ts
 
-class TrajectoryPlanner:
+    @property
+    def t_vicon(self):
+        return self.ts
 
-    def __init__(self, bounds, *acc_calculators):
-
-        if len(bounds) != len(acc_calculators):
-            raise ValueError("Mismatch: {} bounds for {} calculators".format(len(bounds), len(acc_calculators)))
-        if not all([len(pair) == 2 for pair in bounds]):
-            raise ValueError("Bounds must be pairs of upper/lower bounds, but got: {}".format(bounds))
-
-        for (i, bound) in enumerate(bounds[:-1]):
-            others = bounds[i + 1:]
-            for other in others:
-                lower_intersects = other[0] <= bound[0] < other[1]
-                upper_intersects = other[0] < bound[1] <= other[1]
-                if lower_intersects or upper_intersects:
-                    print(lower_intersects)
-                    print(upper_intersects)
-                    raise ValueError("Intersecting bounds were provided: {}".format(bounds))
-
-        self.bounds = bounds
-        self.calculator_map = {bound: calculator for (bound, calculator) in zip(bounds, acc_calculators)}
-
-    def get_calculator(self, bound):
-        return self.calculator_map[bound]
-
-    @staticmethod
-    def incrementer(d):
-        return lambda x: x + d
-
-    @staticmethod
-    def decrementer(d):
-        return lambda x: x - d
+    @property
+    def vals(self):
+        return np.concatenate((self.gs, self.vels_g), axis=0)
 
 
 if __name__ == "__main__":
-    T = 20
-    dt = 0.01
-    da = 1 / 4000
-    planner = TrajectoryPlanner(
-        ((4, 7), (7, 13), (13, 16)),
-        TrajectoryPlanner.incrementer(da),
-        TrajectoryPlanner.decrementer(da),
-        TrajectoryPlanner.incrementer(da)
-    )
-    maker = DataMaker(20, 0.01, planner)
-    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [maker.ts], maker.angs)
+    planner = SimplePlanner()
+    maker = DataMaker(planner)
+    vels_again = utilities.rots_to_vels(maker.rots_g, maker.ts)
+    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [maker.ts[:-1]], vels_again)
