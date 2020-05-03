@@ -1,17 +1,14 @@
-"""
-Filename: ukf.py
-Author: Matt Lisle
-Date: 02/19/19
-Description: Unscented Kalman Filter for orientation tracking
-"""
-
-import numpy as np
 import argparse
-from scipy.io import loadmat
-import matplotlib.pyplot as plt
-from quaternions import Quaternions
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.io import loadmat
+
+from data import utilities
+from data.datamaker import DataMaker
 from data.datastore import DataStore
+from data.trajectoryplanner import SimplePlanner, StationaryPlanner
+from quaternions import Quaternions
 
 
 class Ukf:
@@ -189,7 +186,7 @@ class Ukf:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-D", "--datanum", required=True, help="Number of data file (1 to 3 inclusive)")
+    parser.add_argument("-D", "--datanum", required=False, help="Number of data file (1 to 3 inclusive)")
 
     args = vars(parser.parse_args())
 
@@ -201,8 +198,18 @@ if __name__ == "__main__":
     Q[:3, :3] *= 2
 
     num = args["datanum"]
-    store = DataStore(num, "data")
+    if not num:
+        planner = StationaryPlanner()
+        source = DataMaker(planner)
+    else:
+        source = DataStore(num, "data")
 
-    f = Ukf(store.t_imu, store.vals, R, Q)
+    f = Ukf(source.t_imu, source.vals, R, Q)
     f.run_ukf()
-    Ukf.make_plots(num, f.rots)
+
+    if not num:
+        roll, pitch, yaw = f.rots_to_angles(f.rots)
+        angs = np.vstack((roll, pitch, yaw))
+        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angs_g, angs)
+    else:
+        Ukf.make_plots(num, f.rots)

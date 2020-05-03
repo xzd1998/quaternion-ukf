@@ -64,11 +64,14 @@ class DataMaker:
 
     @property
     def vals(self):
-        return np.concatenate((self.gs, self.vels_g), axis=0)
+        noise = np.random.randn(self.ts.shape[0]) * 0.01
+        return np.concatenate((self.gs, self.vels_g), axis=0) + noise
 
 
 if __name__ == "__main__":
-    planner = SimplePlanner()
+    planner = StationaryPlanner()
     maker = DataMaker(planner)
-    vels_again = utilities.rots_to_vels(maker.rots_g, maker.ts)
-    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [maker.ts[:-1]], vels_again)
+    print(maker.angs_g)
+    ang_labels = ["roll", "pitch", "yaw"]
+    vel_labels = ["wx", "wy", "wz"]
+    utilities.plot_rowwise_data(["z-axis"], ang_labels + vel_labels, [maker.ts], maker.vals)

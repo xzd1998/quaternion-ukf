@@ -59,3 +59,11 @@ class SimplePlanner(TrajectoryPlanner):
             TrajectoryPlanner.decrementer(da),
             TrajectoryPlanner.incrementer(da)
         )
+
+
+class StationaryPlanner(TrajectoryPlanner):
+
+    def __init__(self):
+        duration = 20
+        dt = 0.01
+        super().__init__(duration, dt, [])
