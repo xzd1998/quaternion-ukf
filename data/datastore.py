@@ -1,39 +1,36 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 from scipy.io import loadmat
 from scipy import constants
 
-from ukf import UKF
-from datamaker import DataMaker
-import utilities
+from data.datamaker import DataMaker
+from data import utilities
 
 
 class DataStore:
 
-    def __init__(self, dataset_number):
+    def __init__(self, dataset_number, path_to_data="."):
         self.dataset_number = dataset_number
+        self.path_to_data = path_to_data
+
+        self.imu_filename = os.path.join(path_to_data, "imu", "imuRaw{}.mat".format(self.dataset_number))
+        self.vicon_filename = os.path.join(path_to_data, "vicon", "viconRot{}.mat".format(self.dataset_number))
+
         imu_data = loadmat(self.imu_filename)
         vicon_data = loadmat(self.vicon_filename)
-        sensor_data = imu_data["vals"]
+        sensor_data = imu_data["vals"].astype(float)
 
         self.t_vicon = vicon_data["ts"].reshape(-1)
         self.t_imu = imu_data["ts"].reshape(-1)
 
         self.rots = vicon_data["rots"]
-        self.vals = sensor_data
+        self.vals = np.copy(sensor_data)
 
         # reorder gyro data from imu to roll-pitch-yaw convention
         self.vals[3] = sensor_data[4]
         self.vals[4] = sensor_data[5]
         self.vals[5] = sensor_data[3]
-
-    @property
-    def imu_filename(self):
-        return "./imu/imuRaw{}.mat".format(self.dataset_number)
-
-    @property
-    def vicon_filename(self):
-        return "./vicon/viconRot{}.mat".format(self.dataset_number)
 
     @property
     def angs(self):

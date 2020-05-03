@@ -11,44 +11,30 @@ from scipy.io import loadmat
 import matplotlib.pyplot as plt
 from quaternions import Quaternions
 
+from data.datastore import DataStore
 
-class UKF:
 
-    def __init__(self, data_num=1):
-        self.num = data_num
+class Ukf:
 
-        # Noise parameters for UKF
-        n = 6
-        Rr = np.array([.05, .05, .15])
-        Rw = np.array([.01 for i in range(3)])
-        self.R = np.identity(n) * np.concatenate((Rr, Rw))
-        self.Q = np.identity(n) * 2.993
-        self.Q[:3, :3] *= 2
+    N_DIM = 6
 
-        # Get parameters set up before we get to filtering the data
-        imu = loadmat("data/imu/imuRaw" + str(self.num) + ".mat")
+    def __init__(self, t_imu, vals, R, Q):
+        self.R = R
+        self.Q = Q
 
-        # IMU data
-        self.vals = imu["vals"].astype(float)
-        self.t_imu = imu["ts"].reshape(-1)
-
-        # Reshuffle gyro data to be back in x-y-z order
-        temp = np.copy(self.vals)
-        self.vals[3] = temp[4]
-        self.vals[4] = temp[5]
-        self.vals[5] = temp[3]
+        self.vals = vals
+        self.t_imu = t_imu
 
         # Initialize covariance history and state history
-        self.mu = np.zeros((n + 1, self.vals.shape[-1]))
+        self.mu = np.zeros((Ukf.N_DIM + 1, self.vals.shape[-1]))
         self.mu[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])
-        self.P = np.zeros((n, n, self.mu.shape[-1]))
-        self.P[..., 0] = np.identity(n) * .5
+        self.P = np.zeros((Ukf.N_DIM, Ukf.N_DIM, self.mu.shape[-1]))
+        self.P[..., 0] = np.identity(Ukf.N_DIM) * .5
 
     def run_ukf(self):
 
         self.rots = self.estimate_state()
-        self.roll, self.pitch, self.yaw = UKF.rots_to_angles(self.rots)
-        self.make_plots()
+        self.roll, self.pitch, self.yaw = Ukf.rots_to_angles(self.rots)
 
     def estimate_state(self):
 
@@ -164,21 +150,22 @@ class UKF:
 
         return mu_this, P_this
 
-    def make_plots(self):
-        vicon = loadmat("data/vicon/viconRot" + str(self.num) + ".mat")
-        imu = loadmat("data/imu/imuRaw" + str(self.num) + ".mat")
+    @staticmethod
+    def make_plots(num, rots):
+        vicon = loadmat("data/vicon/viconRot{}.mat".format(num))
+        imu = loadmat("data/imu/imuRaw{}.mat".format(num))
 
         R = vicon["rots"]
         t_vicon = vicon["ts"].reshape(-1)
         t_imu = imu["ts"].reshape(-1)
         t0 = min(t_vicon[0], t_imu[0])
         R = R[..., t_vicon > t_imu[0]]
-        r = self.rots[..., t_imu > t_vicon[0]]
+        r = rots[..., t_imu > t_vicon[0]]
 
         labels = ["Roll", "Pitch", "Yaw"]
 
-        a = UKF.rots_to_angles(r)
-        angs = UKF.rots_to_angles(R)
+        a = Ukf.rots_to_angles(r)
+        angs = Ukf.rots_to_angles(R)
 
         for i in range(3):
             plt.figure(i)
@@ -206,5 +193,16 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
 
-    f = UKF(args["datanum"])
+    # Noise parameters for UKF
+    Rr = np.array([.05, .05, .15])
+    Rw = np.array([.01 for i in range(3)])
+    R = np.identity(Ukf.N_DIM) * np.concatenate((Rr, Rw))
+    Q = np.identity(Ukf.N_DIM) * 2.993
+    Q[:3, :3] *= 2
+
+    num = args["datanum"]
+    store = DataStore(num, "data")
+
+    f = Ukf(store.t_imu, store.vals, R, Q)
     f.run_ukf()
+    Ukf.make_plots(num, f.rots)
