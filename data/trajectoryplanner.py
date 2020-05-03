@@ -64,6 +64,6 @@ class SimplePlanner(TrajectoryPlanner):
 class StationaryPlanner(TrajectoryPlanner):
 
     def __init__(self):
-        duration = 20
+        duration = 60
         dt = 0.01
         super().__init__(duration, dt, [])

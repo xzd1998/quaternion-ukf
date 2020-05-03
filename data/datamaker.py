@@ -64,7 +64,8 @@ class DataMaker:
 
     @property
     def vals(self):
-        noise = np.random.randn(self.ts.shape[0]) * 0.01
+        np.random.seed(1)
+        noise = np.random.randn(self.ts.shape[0]) * 0.000
         return np.concatenate((self.gs, self.vels_g), axis=0) + noise
 
 

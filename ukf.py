@@ -39,6 +39,9 @@ class Ukf:
         mr = np.array([-0.09363796, -0.09438229, 0.09449341])
         br = np.array([47.88161084, 47.23512485, -47.39899347])
         mw = np.array([0.01546466, 0.01578361, 0.01610787])
+        # mr = np.ones(3)
+        # br = np.zeros(3)
+        # mw = np.ones(3)
         # mw = np.ones(3) * -0.15
 
         self.vals[:3, :] = self.vals[:3, :] * mr.reshape(3, 1) + br.reshape(3, 1)
@@ -102,6 +105,7 @@ class Ukf:
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
         rWp = q_mean.inverse().q_multiply(qs).to_vectors()
+        # rWp = qs.q_multiply(q_mean.inverse()).to_vectors()
         wWp = Y[4:, :] - w_mean.reshape(-1, 1)
         Wp = np.concatenate((rWp, wWp))
 
@@ -197,9 +201,15 @@ if __name__ == "__main__":
     Q = np.identity(Ukf.N_DIM) * 2.993
     Q[:3, :3] *= 2
 
+    # Rr = np.array([.05, .05, .05])
+    # Rw = np.array([.01 for i in range(3)])
+    # R = np.identity(Ukf.N_DIM) * np.concatenate((Rr, Rw))
+    # Q = np.identity(Ukf.N_DIM) * 4
+    # Q[:3, :3] *= 2
+
     num = args["datanum"]
     if not num:
-        planner = StationaryPlanner()
+        planner = SimplePlanner()
         source = DataMaker(planner)
     else:
         source = DataStore(num, "data")
