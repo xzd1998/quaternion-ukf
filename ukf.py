@@ -28,7 +28,7 @@ class Ukf:
         self.P = np.zeros((Ukf.N_DIM, Ukf.N_DIM, self.mu.shape[-1]))
         self.P[..., 0] = np.identity(Ukf.N_DIM) * .5
 
-    def run_ukf(self):
+    def filter_data(self):
 
         self.rots = self.estimate_state()
         self.roll, self.pitch, self.yaw = Ukf.rots_to_angles(self.rots)
@@ -36,12 +36,12 @@ class Ukf:
     def estimate_state(self):
 
         # Hardcode learned parameters for acceleration/gyro since can't access training script in autograder
-        mr = np.array([-0.09363796, -0.09438229, 0.09449341])
-        br = np.array([47.88161084, 47.23512485, -47.39899347])
-        mw = np.array([0.01546466, 0.01578361, 0.01610787])
-        # mr = np.ones(3)
-        # br = np.zeros(3)
-        # mw = np.ones(3)
+        # mr = np.array([-0.09363796, -0.09438229, 0.09449341])
+        # br = np.array([47.88161084, 47.23512485, -47.39899347])
+        # mw = np.array([0.01546466, 0.01578361, 0.01610787])
+        mr = np.ones(3)
+        br = np.zeros(3)
+        mw = np.ones(3)
         # mw = np.ones(3) * -0.15
 
         self.vals[:3, :] = self.vals[:3, :] * mr.reshape(3, 1) + br.reshape(3, 1)
@@ -215,7 +215,7 @@ if __name__ == "__main__":
         source = DataStore(num, "data")
 
     f = Ukf(source.t_imu, source.vals, R, Q)
-    f.run_ukf()
+    f.filter_data()
 
     if not num:
         roll, pitch, yaw = f.rots_to_angles(f.rots)

@@ -94,14 +94,14 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    store = DataStore(7)
+    store = DataStore(1)
     planner = SimplePlanner()
     maker = DataMaker(planner)
 
     trainer = Trainer(store.rots, store.vals, store.t_imu, store.t_vicon)
     # trainer = Trainer(maker.rots_g, maker.vals, maker.t_imu, maker.t_vicon)
 
-    m, b, R = trainer.train_acc()
+    m, b, R = trainer.train_vel()
     print(m)
     print(b)
     print(R)

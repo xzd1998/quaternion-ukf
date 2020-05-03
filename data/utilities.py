@@ -52,7 +52,7 @@ def plot_rowwise_data(data_labels, y_labels, ts, *datasets):
     n_sets = len(datasets)
 
     for dataset in datasets:
-        if dataset.shape[0] != n_plots:
+        if len(dataset) != n_plots:
             raise ValueError("Mismatch: {} labels versus {} rows of data".format(n_plots, n_sets))
 
     for i in range(n_plots):
@@ -64,6 +64,12 @@ def plot_rowwise_data(data_labels, y_labels, ts, *datasets):
         plt.legend(data_labels)
         plt.grid(True)
     plt.show()
+
+
+def accs_to_roll_pitch(accs):
+    roll = np.arctan2(accs[1], accs[2])
+    pitch = np.arctan2(-accs[0], np.sqrt(np.square(accs[1]) + np.square(accs[2])))
+    return roll, pitch
 
 
 if __name__ == "__main__":

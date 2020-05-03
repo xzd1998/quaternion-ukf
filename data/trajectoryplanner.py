@@ -50,7 +50,7 @@ class SimplePlanner(TrajectoryPlanner):
     def __init__(self):
         duration = 20
         dt = 0.01
-        da = 1 / 3450
+        da = 1 / 4000  # 3450
         super().__init__(
             duration,
             dt,
