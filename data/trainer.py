@@ -9,6 +9,10 @@ from data.datastore import DataStore
 
 
 class Trainer:
+
+    m = np.array([-0.09363796, -0.09438229, 0.09449341, 0.01546466, 0.01578361, 0.01610787])
+    b = np.array([47.88161084, 47.23512485, -47.39899347, -5.75, -5.75, -5.9])
+
     def __init__(self, rots, vals, t_imu, t_vicon):
 
         indexer = np.logical_not(np.array([np.any(np.isnan(rots[..., i])) for i in range(rots.shape[-1])]))
@@ -98,7 +102,7 @@ if __name__ == "__main__":
     planner = SimplePlanner()
     maker = DataMaker(planner)
 
-    trainer = Trainer(store.rots, store.vals, store.t_imu, store.t_vicon)
+    trainer = Trainer(store.rots_vicon, store.data_imu, store.t_imu, store.t_vicon)
     # trainer = Trainer(maker.rots_g, maker.vals, maker.t_imu, maker.t_vicon)
 
     m, b, R = trainer.train_vel()

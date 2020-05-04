@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.constants import g
 
 
 def rots_to_angles(rots):
@@ -16,6 +17,17 @@ def rots_to_vels(rots, ts):
     dts = np.diff(ts)
     dr, dp, dy = (np.diff(roll) / dts, np.diff(pitch) / dts, np.diff(yaw) / dts)
     return np.vstack((dr, dp, dy)), ts[:-1]
+
+
+def rots_to_accs(rots, noise=None):
+    result = np.zeros((rots.shape[0], 1, rots.shape[-1]))
+    gravity = np.array([0, 0, g]).reshape(3, 1)
+    for i in range(rots.shape[-1]):
+        result[..., i] = np.matmul(rots[..., i].T, gravity)
+    result = result.reshape(3, -1)
+    if noise is not None:
+        result += noise
+    return result.reshape(3, -1)
 
 
 def make_angles_continuous(angles):

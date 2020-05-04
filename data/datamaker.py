@@ -2,13 +2,18 @@ import numpy as np
 from scipy.constants import g
 
 from data import utilities
+from data.datasource import DataSource
 from data.trajectoryplanner import *
 
 
-class DataMaker:
-
+class DataMaker(DataSource):
+    """
+    Creates test data from a pre-planned trajectory
+    """
     def __init__(self, planner):
-
+        """
+        :param planner: defines what the angular acceleration is at each timestep
+        """
         if planner.duration < planner.dt:
             raise ValueError("Total time can't be less than the increment")
 
@@ -29,50 +34,21 @@ class DataMaker:
                     accs[i + 1] = calculator(accs[i])
             integrate(i)
 
-        self.angs_g = angs.T
-        self.vels_g = vels.T
+        self.angs_vicon = angs.T
+        vels_imu = vels.T
+        vels_imu += planner.drift
 
         # Rotation of the robot frame with respect to the global frame
-        self.rots_g = utilities.angles_to_rots(self.angs_g[0], self.angs_g[1], self.angs_g[2])
+        rots_vicon = utilities.angles_to_rots(self.angs_vicon[0], self.angs_vicon[1], self.angs_vicon[2])
+        accs = utilities.rots_to_accs(rots_vicon, planner.noise)
 
-        # Rotation of the global frame with respect to the robot frame
-        self.rots_r = np.zeros(self.rots_g.shape)
-        self.vels_r = np.zeros(self.vels_g.shape)
-        for i in range(self.rots_g.shape[-1]):
-            self.rots_r[..., i] = self.rots_g[..., i].T
-            self.vels_r[..., i] = np.matmul(self.rots_r[..., i], self.vels_g[..., i].reshape(3, 1)).reshape(-1)
-
-    @property
-    def zs(self):
-        return self.rots_g[:, -1]
-
-    @property
-    def gs(self):
-        result = np.zeros((self.rots_g.shape[0], 1, self.rots_g.shape[-1]))
-        gravity = np.array([0, 0, g]).reshape(3, 1)
-        for i in range(self.rots_g.shape[-1]):
-            result[..., i] = np.matmul(self.rots_r[..., i], gravity)
-        return result.reshape(3, -1)
-
-    @property
-    def t_imu(self):
-        return self.ts
-
-    @property
-    def t_vicon(self):
-        return self.ts
-
-    @property
-    def vals(self):
-        np.random.seed(1)
-        noise = np.random.randn(self.ts.shape[0]) * 0.01
-        return np.concatenate((self.gs, self.vels_g), axis=0) + noise
+        super().__init__(self.ts, rots_vicon, self.ts, accs, vels_imu)
 
 
 if __name__ == "__main__":
-    planner = StationaryPlanner()
+    planner = SimplePlanner()
     maker = DataMaker(planner)
-    print(maker.angs_g)
+    print(maker.angs_vicon)
     ang_labels = ["roll", "pitch", "yaw"]
     vel_labels = ["wx", "wy", "wz"]
-    utilities.plot_rowwise_data(["z-axis"], ang_labels + vel_labels, [maker.ts], maker.vals)
+    utilities.plot_rowwise_data(["z-axis"], ang_labels + vel_labels, [maker.ts], maker.data_imu)

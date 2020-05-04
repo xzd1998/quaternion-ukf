@@ -188,6 +188,7 @@ class Ukf:
 
 
 if __name__ == "__main__":
+    from data.trainer import Trainer
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-D", "--datanum", required=False, help="Number of data file (1 to 3 inclusive)")
@@ -212,14 +213,14 @@ if __name__ == "__main__":
         planner = SimplePlanner()
         source = DataMaker(planner)
     else:
-        source = DataStore(num, "data")
+        source = DataStore(Trainer.m, Trainer.b, num, "data")
 
-    f = Ukf(source.t_imu, source.vals, R, Q)
+    f = Ukf(source.ts_imu, source.data_imu, R, Q)
     f.filter_data()
 
     if not num:
         roll, pitch, yaw = f.rots_to_angles(f.rots)
         angs = np.vstack((roll, pitch, yaw))
-        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angs_g, angs)
+        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angs_vicon, angs)
     else:
         Ukf.make_plots(num, f.rots)

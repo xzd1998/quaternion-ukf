@@ -1,16 +1,23 @@
+import numpy as np
 
 
 class TrajectoryPlanner:
 
-    def __init__(self, duration, dt, bounds, *acc_calculators):
+    def __init__(self, duration, dt, noise_stddev, drift_stddev, bounds, *acc_calculators):
 
-        self._duration = duration
-        self._dt = dt
+        self.duration = duration
+        self.dt = dt
+        self.num_data = int(duration / dt)
 
         if len(bounds) != len(acc_calculators):
             raise ValueError("Mismatch: {} bounds for {} calculators".format(len(bounds), len(acc_calculators)))
         if not all([len(pair) == 2 for pair in bounds]):
             raise ValueError("Bounds must be pairs of upper/lower bounds, but got: {}".format(bounds))
+        # if duration % dt != 0:
+        #     raise ValueError("Duration {} s not divisible by time increment {} s".format(duration, dt))
+
+        self.noise = np.random.randn(self.num_data) * noise_stddev
+        self.drift = np.cumsum(np.random.randn(self.num_data) * drift_stddev)
 
         for (i, bound) in enumerate(bounds[:-1]):
             others = bounds[i + 1:]
@@ -28,14 +35,6 @@ class TrajectoryPlanner:
     def get_calculator(self, bound):
         return self.calculator_map[bound]
 
-    @property
-    def duration(self):
-        return self._duration
-
-    @property
-    def dt(self):
-        return self._dt
-
     @staticmethod
     def incrementer(d):
         return lambda x: x + d
@@ -47,13 +46,15 @@ class TrajectoryPlanner:
 
 class SimplePlanner(TrajectoryPlanner):
 
-    def __init__(self):
+    def __init__(self, noise_stddev=0.01, drift_stddev = 0.001):
         duration = 20
         dt = 0.01
         da = 1 / 4000  # 3450
         super().__init__(
             duration,
             dt,
+            noise_stddev,
+            drift_stddev,
             ((4, 7), (7, 13), (13, 16)),
             TrajectoryPlanner.incrementer(da),
             TrajectoryPlanner.decrementer(da),
@@ -66,4 +67,4 @@ class StationaryPlanner(TrajectoryPlanner):
     def __init__(self):
         duration = 60
         dt = 0.01
-        super().__init__(duration, dt, [])
+        super().__init__(duration, dt, 0, 0, [])

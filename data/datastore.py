@@ -6,11 +6,29 @@ from scipy import constants
 
 from data.datamaker import DataMaker
 from data import utilities
+from data.datasource import DataSource
 
 
-class DataStore:
+class DataStore(DataSource):
+    """
+    Loads data from an existing source of matching vicon and imu data
+    """
+    def __init__(self, m, b, dataset_number, path_to_data="."):
+        """
+        :param m: linear coefficients for imu data
+        :param b: biases for imu data
+        :param dataset_number: corresponding to the numbers in the filenames
+        :param path_to_data: path to the directory of this package
+        """
+        if m.shape != (6,):
+            raise ValueError(
+                "Value coefficients have invalid shape: expected {} but got {}".format((6,), m.shape)
+            )
+        if b.shape != (6,):
+            raise ValueError(
+                "Value biases have invalid shape: expected {} but got {}".format((6,), b.shape)
+            )
 
-    def __init__(self, dataset_number, path_to_data="."):
         self.dataset_number = dataset_number
         self.path_to_data = path_to_data
 
@@ -21,46 +39,21 @@ class DataStore:
         vicon_data = loadmat(self.vicon_filename)
         sensor_data = imu_data["vals"].astype(float)
 
-        self.t_vicon = vicon_data["ts"].reshape(-1)
-        self.t_imu = imu_data["ts"].reshape(-1)
+        ts_vicon = vicon_data["ts"].reshape(-1)
+        ts_imu = imu_data["ts"].reshape(-1)
 
-        self.rots = vicon_data["rots"]
-        self.vals = np.copy(sensor_data)
+        rots_vicon = vicon_data["rots"]
+        data_imu = np.copy(sensor_data)
 
         # reorder gyro data from imu to roll-pitch-yaw convention
-        self.vals[3] = sensor_data[4]
-        self.vals[4] = sensor_data[5]
-        self.vals[5] = sensor_data[3]
+        data_imu[3] = sensor_data[4]
+        data_imu[4] = sensor_data[5]
+        data_imu[5] = sensor_data[3]
+        data_imu = data_imu * m.reshape(-1, 1) + b.reshape(-1, 1)
 
-    @property
-    def angs(self):
-        return utilities.rots_to_angles(self.rots)
-
-    @property
-    def zs_vicon(self):
-        return self.rots[:, -1]
-
-    @property
-    def gs_vicon(self):
-        g = constants.g
-        return self.zs_vicon * np.array([-g, -g, g]).reshape(3, 1)
-
-    def gs_imu(self, m, b):
-        return self.vals[:3] * m + b
-
-    @property
-    def vels(self):
-        return self.vals[3:]
+        super().__init__(ts_vicon, rots_vicon, ts_imu, data_imu[:3], data_imu[3:])
 
 
 if __name__ == "__main__":
-    mr = np.array([-0.09363796, -0.09438229, 0.09449341]).reshape(3, 1)
-    br = np.array([47.88161084, 47.23512485, -47.39899347]).reshape(3, 1)
-    store = DataStore(1)
-    utilities.plot_rowwise_data(
-        ["Truth", "Measured"],
-        ["x", "y", "z"],
-        [store.t_vicon, store.t_imu],
-        store.gs_vicon,
-        store.gs_imu(mr, br)
-    )
+    from data.trainer import Trainer
+    store = DataStore(Trainer.m, Trainer.b, dataset_number=1)
