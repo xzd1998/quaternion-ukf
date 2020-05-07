@@ -213,7 +213,7 @@ if __name__ == "__main__":
         planner = SimplePlanner()
         source = DataMaker(planner)
     else:
-        source = DataStore(Trainer.m, Trainer.b, num, "data")
+        source = DataStore(dataset_number=num, path_to_data="data")
 
     f = Ukf(source.ts_imu, source.data_imu, R, Q)
     f.filter_data()

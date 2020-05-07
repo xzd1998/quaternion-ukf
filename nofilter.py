@@ -76,7 +76,6 @@ class NoFilter:
 
 
 if __name__ == "__main__":
-    from data.trainer import Trainer
 
     parser = argparse.ArgumentParser()
 
@@ -91,7 +90,7 @@ if __name__ == "__main__":
         m = np.ones(NoFilter.N_DIM)
         b = np.zeros(NoFilter.N_DIM)
     else:
-        source = DataStore(Trainer.m, Trainer.b, num, "data")
+        source = DataStore(dataset_number=num, path_to_data="data")
 
     f = NoFilter(source)
     f.filter_data()

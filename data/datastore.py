@@ -7,13 +7,14 @@ from scipy import constants
 from data.datamaker import DataMaker
 from data import utilities
 from data.datasource import DataSource
+from data.trainer import Trainer
 
 
 class DataStore(DataSource):
     """
     Loads data from an existing source of matching vicon and imu data
     """
-    def __init__(self, m, b, dataset_number, path_to_data="."):
+    def __init__(self, dataset_number, path_to_data=".", m=Trainer.m, b=Trainer.b):
         """
         :param m: linear coefficients for imu data
         :param b: biases for imu data
@@ -55,5 +56,6 @@ class DataStore(DataSource):
 
 
 if __name__ == "__main__":
-    from data.trainer import Trainer
-    store = DataStore(Trainer.m, Trainer.b, dataset_number=1)
+    from data.trainer import Trainer, Trainer
+
+    store = DataStore(dataset_number=1)
