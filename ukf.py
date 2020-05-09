@@ -1,8 +1,7 @@
 import argparse
 
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.io import loadmat
+from scipy.constants import g
 
 from data import utilities
 from data.datamaker import DataMaker
@@ -29,10 +28,13 @@ class Ukf(ImuFilter):
         self.P = np.zeros((Ukf.N_DIM, Ukf.N_DIM, self.mu.shape[-1]))
         self.P[..., 0] = np.identity(Ukf.N_DIM) * .5
 
+        self.t = 0
+
     def filter_data(self):
 
         self.imu_data[3:, :] = self.imu_data[3:, :] - ((np.mean(self.imu_data[3:, :50], axis=1) +
                                                         np.mean(self.imu_data[3:, -50:], axis=1)) / 2).reshape(3, 1)
+        # Normalized because the gravity vector is also normalized
         self.imu_data[:3] = self.imu_data[:3] / np.linalg.norm(self.imu_data[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
@@ -40,6 +42,7 @@ class Ukf(ImuFilter):
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.ts_imu[i] - self.ts_imu[i - 1]
+            self.t += dt
 
             self.mu[:, i], self.P[..., i] = self._filter_next(
                 self.P[..., i - 1],
@@ -61,7 +64,7 @@ class Ukf(ImuFilter):
         W = np.concatenate((np.zeros((n, 1)), W), axis=1)
 
         # Equation 34: Form sigma points based on prior mean and covariance data
-        qW = Quaternions.from_vector(W[:3])
+        qW = Quaternions.from_vectors(W[:3])
         q_last = Quaternions(mu_last[:4])
         q_sigpt = q_last.q_multiply(qW)
 
@@ -70,17 +73,20 @@ class Ukf(ImuFilter):
         w_sigpt = w_last.reshape(-1, 1) * np.ones(wW.shape) + wW
 
         # Equations 9-11: form q_delta
-        ad = np.linalg.norm(w_sigpt, axis=0) * dt
-        ed = np.zeros(w_sigpt.shape)
-        if np.any(ad == 0):
-            ind = ad == 0
-            not_ind = ad != 0
-            ed[:, ind] = np.zeros((3, np.sum(ind)))
-            ed[:, not_ind] = w_sigpt[:, not_ind].astype(float) * dt / ad[not_ind]
-        else:
-            ed = -w_sigpt.astype(float) * dt / ad
-        qd = np.array([np.cos(ad * .5), ed[0] * np.sin(ad * .5), ed[1] * np.sin(ad * .5), ed[2] * np.sin(ad * .5)])
-        qd = Quaternions(qd.astype(float) / np.linalg.norm(qd, axis=0))
+        # TODO problem area
+        wd = w_sigpt * dt
+        qd = Quaternions.from_vectors(wd)
+        # ad = np.linalg.norm(w_sigpt, axis=0) * dt
+        # ed = np.zeros(w_sigpt.shape)
+        # if np.any(ad == 0):
+        #     ind = ad == 0
+        #     not_ind = ad != 0
+        #     ed[:, ind] = np.zeros((3, np.sum(ind)))
+        #     ed[:, not_ind] = w_sigpt[:, not_ind].astype(float) * dt / ad[not_ind]
+        # else:
+        #     ed = -w_sigpt.astype(float) * dt / ad
+        # qd = np.array([np.cos(ad * .5), ed[0] * np.sin(ad * .5), ed[1] * np.sin(ad * .5), ed[2] * np.sin(ad * .5)])
+        # qd = Quaternions(qd.astype(float) / np.linalg.norm(qd, axis=0))
 
         # Equation 22: Apply non-linear function A with process noise of zero
         qY = q_sigpt.q_multiply(qd)
@@ -95,8 +101,14 @@ class Ukf(ImuFilter):
         mu_this_est = np.concatenate((q_mean.array.reshape(-1), w_mean.reshape(-1)))
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
-        rWp = q_mean.inverse().q_multiply(qs).to_vectors()
-        # rWp = qs.q_multiply(q_mean.inverse()).to_vectors()
+        # TODO problem area
+        # qWp = qs.q_multiply(q_mean.inverse())
+        # rWp = q_mean.inverse().q_multiply(qs).to_vectors()
+        rWp = qs.q_multiply(q_mean.inverse()).to_vectors()
+        # print("---------------------------------")
+        # print("Time: {} seconds".format(self.t))
+        # print("Error quaternion:\n{}".format(qWp))
+        # print("Error vector:\n{}".format(np.round(rWp, 3).T))
         wWp = Y[4:, :] - w_mean.reshape(-1, 1)
         Wp = np.concatenate((rWp, wWp))
 
@@ -129,7 +141,7 @@ class Ukf(ImuFilter):
 
         # Equation 74
         r_this = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
-        q_this = Quaternions.from_vector(r_this[:3])
+        q_this = Quaternions.from_vectors(r_this[:3])
         w_this = r_this[3:]
 
         # Equation 46

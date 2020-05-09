@@ -18,6 +18,14 @@ class ImuFilter(ABC):
         """Applies chosen filtering technique to estimate rotation matrices"""
         pass
 
+    def _integrate_vel(self):
+        angles = np.zeros((3, self.num_data))
+        dts = np.diff(self.ts_imu)
+        da_dts = (self.vel_data[:, :-1] + self.vel_data[:, 1:]) * dts / 2
+        print(da_dts.shape)
+        angles[:, 1:] = np.cumsum(da_dts, axis=1)
+        return angles
+
     @property
     def num_data(self):
         """Length of imu data array"""
@@ -36,7 +44,7 @@ class ImuFilter(ABC):
     @lazy
     def angles(self):
         """Tuple of estimated roll, pitch, and yaw angles"""
-        return utilities.rots_to_angles(self.rots)
+        return utilities.rots_to_angles_zyx(self.rots)
 
     @lazy
     def acc_data(self):
@@ -60,8 +68,8 @@ class ImuFilter(ABC):
 
         labels = ["Roll", "Pitch", "Yaw"]
 
-        a = utilities.rots_to_angles(rots_est_copy)
-        angs = utilities.rots_to_angles(rots_truth_copy)
+        a = utilities.rots_to_angles_zyx(rots_est_copy)
+        angs = utilities.rots_to_angles_zyx(rots_truth_copy)
 
         for i in range(3):
             plt.figure(i)

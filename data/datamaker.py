@@ -34,21 +34,20 @@ class DataMaker(DataSource):
                     accs[i + 1] = calculator(accs[i])
             integrate(i)
 
-        self.angs_vicon = angs.T
-        vels_imu = vels.T
-        vels_imu += planner.drift
+        self.vectors = angs.T
+        vel_data = vels.T
+        vel_data += planner.drift
 
         # Rotation of the robot frame with respect to the global frame
-        rots_vicon = utilities.angles_to_rots_zyx(self.angs_vicon[0], self.angs_vicon[1], self.angs_vicon[2])
-        accs = utilities.rots_to_accs(rots_vicon, planner.noise)
+        rots_vicon = utilities.vectors_to_rots(self.vectors)
+        acc_data = utilities.rots_to_accs(rots_vicon, planner.noise)
 
-        super().__init__(self.ts, rots_vicon, self.ts, accs, vels_imu)
+        super().__init__(self.ts, rots_vicon, self.ts, acc_data, vel_data)
 
 
 if __name__ == "__main__":
     planner = SimplePlanner()
     maker = DataMaker(planner)
-    print(maker.angs_vicon)
     ang_labels = ["roll", "pitch", "yaw"]
     vel_labels = ["wx", "wy", "wz"]
-    utilities.plot_rowwise_data(["z-axis"], ang_labels + vel_labels, [maker.ts], maker.imu_data)
+    utilities.plot_rowwise_data(["z-axis"], ang_labels, [maker.ts], maker.angles)

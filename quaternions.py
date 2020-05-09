@@ -49,7 +49,7 @@ class Quaternions:
             err_rot = err_quat.to_vectors()
             err_rot_mean = np.mean(err_rot, axis=1)  # Equation 54
 
-            err_quat_mean = Quaternions.from_vector(err_rot_mean)
+            err_quat_mean = Quaternions.from_vectors(err_rot_mean)
             q_mean = err_quat_mean.q_multiply(q_mean)  # Equation 55
 
             err = np.linalg.norm(err_rot_mean)
@@ -97,7 +97,7 @@ class Quaternions:
             v[..., not_ind] = theta[not_ind].astype(float) / np.sin(theta[not_ind] * .5) * self.array[1:, not_ind]
             return v
         v = theta.astype(float) / np.sin(theta * .5) * self.array[1:]
-        return v.astype(float) / np.linalg.norm(v, axis=0)
+        return v.astype(float)  # / np.linalg.norm(v, axis=0)
 
     def inverse(self):
         """
@@ -119,7 +119,7 @@ class Quaternions:
         return R
 
     @staticmethod
-    def from_vector(raw):
+    def from_vectors(raw):
         """
         Converts vector or array of vectors to an array of quaternions
         :param raw: vector to convert

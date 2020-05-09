@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.constants import g
 
 
-def rots_to_angles(rots):
+def rots_to_angles_zyx(rots):
     roll = np.arctan2(rots[2, 1], rots[2, 2])
     pitch = np.arctan2(-rots[2, 0], np.sqrt(np.square(rots[2, 1]) + np.square(rots[2, 2])))
     yaw = np.arctan2(rots[1, 0], rots[0, 0])
@@ -11,8 +11,16 @@ def rots_to_angles(rots):
     return roll, pitch, yaw
 
 
+def rots_to_angles_xyz(rots):
+    roll = np.arctan2(-rots[1, 2], rots[2, 2])
+    pitch = np.arctan2(rots[0, 2], np.sqrt(np.square(rots[1, 2]) + np.square(rots[2, 2])))
+    yaw = np.arctan2(-rots[0, 1], rots[0, 0])
+
+    return roll, pitch, yaw
+
+
 def rots_to_vels(rots, ts):
-    roll, pitch, yaw = rots_to_angles(rots)
+    roll, pitch, yaw = rots_to_angles_zyx(rots)
     make_angles_continuous([roll, pitch, yaw])
     dts = np.diff(ts)
     dr, dp, dy = (np.diff(roll) / dts, np.diff(pitch) / dts, np.diff(yaw) / dts)
@@ -43,6 +51,37 @@ def moving_average(data, n=9):
     for i in range(data.shape[0]):
         averaged[i] = np.convolve(data[i], np.ones(n) / n, "same")
     return averaged
+
+
+def vectors_to_rots(raw):
+    vecs = np.copy(raw)
+    if len(vecs.shape) == 1:
+        vecs = vecs.reshape(-1, 1)
+    rots = np.zeros((3, 3, vecs.shape[-1]))
+    k = np.zeros((3, vecs.shape[-1]))
+    theta = np.linalg.norm(vecs, axis=0)
+    indexer = theta > 0
+
+    k[:, indexer] = vecs[:, indexer] / theta[indexer]
+    kx = k[0]
+    ky = k[1]
+    kz = k[2]
+
+    c_th = np.cos(theta)
+    v_th = 1 - np.cos(theta)
+    s_th = np.sin(theta)
+
+    rots[0, 0] = np.square(kx) * v_th + c_th
+    rots[1, 0] = kx * ky * v_th + kz * s_th
+    rots[2, 0] = kx * kz * v_th - ky * s_th
+    rots[0, 1] = kx * ky * v_th - kz * s_th
+    rots[1, 1] = np.square(ky) * v_th + c_th
+    rots[2, 1] = ky * kz * v_th + kx * s_th
+    rots[0, 2] = kx * kz * v_th + ky * s_th
+    rots[1, 2] = ky * kz * v_th - kx * s_th
+    rots[2, 2] = np.square(kz) * v_th + c_th
+
+    return rots
 
 
 def angles_to_rots_zyx(roll, pitch, yaw):
@@ -102,8 +141,8 @@ if __name__ == "__main__":
     rpy = np.random.randn(3, 1)
     print(rpy)
     rot = angles_to_rots_zyx(rpy[0], rpy[1], rpy[2])
-    r, p, y = rots_to_angles(rot)
+    r, p, y = rots_to_angles_zyx(rot)
     rpy_again = np.array([r, p, y]).reshape(3, 1)
-    print(rots_to_angles(rot))
+    print(rots_to_angles_zyx(rot))
     print(np.abs(rpy - rpy_again) < .001)
 

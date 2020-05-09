@@ -1,4 +1,7 @@
+from lazy import lazy
 import numpy as np
+
+from data import utilities
 
 
 class DataSource:
@@ -20,3 +23,8 @@ class DataSource:
         self.acc_data = acc_data
         self.vel_data = vel_data
         self.imu_data = np.vstack((self.acc_data, self.vel_data))
+
+    @lazy
+    def angles(self):
+        """Tuple of estimated roll, pitch, and yaw angles"""
+        return utilities.rots_to_angles_zyx(self.rots_vicon)
