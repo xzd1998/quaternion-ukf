@@ -113,7 +113,7 @@ class Quaternions:
         """
         u0 = self.array[0]
         u = self.array[1:].reshape(3, 1)
-        uhat = np.array([[0, -u[2], u[1]], [u[2], 0, -u[0]], [-u[1], u[0], 0]])
+        uhat = np.array([[0, -u[2, 0], u[1, 0]], [u[2, 0], 0, -u[0, 0]], [-u[1, 0], u[0, 0], 0]])
         R = (u0 ** 2 - np.matmul(u.T, u)) * np.identity(3) + 2 * u0 * uhat + 2 * np.matmul(u, u.T)
 
         return R.T
