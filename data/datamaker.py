@@ -39,7 +39,7 @@ class DataMaker(DataSource):
         vels_imu += planner.drift
 
         # Rotation of the robot frame with respect to the global frame
-        rots_vicon = utilities.angles_to_rots(self.angs_vicon[0], self.angs_vicon[1], self.angs_vicon[2])
+        rots_vicon = utilities.angles_to_rots_zyx(self.angs_vicon[0], self.angs_vicon[1], self.angs_vicon[2])
         accs = utilities.rots_to_accs(rots_vicon, planner.noise)
 
         super().__init__(self.ts, rots_vicon, self.ts, accs, vels_imu)

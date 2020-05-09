@@ -33,7 +33,6 @@ class Ukf(ImuFilter):
 
         self.imu_data[3:, :] = self.imu_data[3:, :] - ((np.mean(self.imu_data[3:, :50], axis=1) +
                                                         np.mean(self.imu_data[3:, -50:], axis=1)) / 2).reshape(3, 1)
-        # TODO this seems like a problem
         self.imu_data[:3] = self.imu_data[:3] / np.linalg.norm(self.imu_data[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))

@@ -18,7 +18,7 @@ class NoFilter(ImuFilter):
         roll, pitch = utilities.accs_to_roll_pitch(self.acc_data)
         yaw = np.zeros(self.num_data)
         yaw[1:] = self._estimate_yaw()
-        self.rots = utilities.angles_to_rots(roll, pitch, yaw)
+        self.rots = utilities.angles_to_rots_zyx(roll, pitch, yaw)
 
     def _estimate_yaw(self):
         dts = np.diff(self.ts_imu)
