@@ -51,4 +51,4 @@ if __name__ == "__main__":
     print(maker.angs_vicon)
     ang_labels = ["roll", "pitch", "yaw"]
     vel_labels = ["wx", "wy", "wz"]
-    utilities.plot_rowwise_data(["z-axis"], ang_labels + vel_labels, [maker.ts], maker.data_imu)
+    utilities.plot_rowwise_data(["z-axis"], ang_labels + vel_labels, [maker.ts], maker.imu_data)

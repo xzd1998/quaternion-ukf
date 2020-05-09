@@ -8,59 +8,51 @@ from data import utilities
 from data.datamaker import DataMaker
 from data.datastore import DataStore
 from data.trajectoryplanner import SimplePlanner, StationaryPlanner
+from imufilter import ImuFilter
 from quaternions import Quaternions
 
 
-class Ukf:
+class Ukf(ImuFilter):
 
     N_DIM = 6
 
-    def __init__(self, t_imu, vals, R, Q):
+    def __init__(self, source, R, Q):
+
+        super().__init__(source)
+
         self.R = R
         self.Q = Q
 
-        self.vals = vals
-        self.t_imu = t_imu
-
         # Initialize covariance history and state history
-        self.mu = np.zeros((Ukf.N_DIM + 1, self.vals.shape[-1]))
+        self.mu = np.zeros((Ukf.N_DIM + 1, self.imu_data.shape[-1]))
         self.mu[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])
         self.P = np.zeros((Ukf.N_DIM, Ukf.N_DIM, self.mu.shape[-1]))
         self.P[..., 0] = np.identity(Ukf.N_DIM) * .5
 
     def filter_data(self):
 
-        self.rots = self.estimate_state()
-        self.roll, self.pitch, self.yaw = Ukf.rots_to_angles(self.rots)
-
-    def estimate_state(self):
-
-        # Hardcode learned parameters for acceleration/gyro since can't access training script in autograder
-        # mr = np.array([-0.09363796, -0.09438229, 0.09449341])
-        # br = np.array([47.88161084, 47.23512485, -47.39899347])
-        # mw = np.array([0.01546466, 0.01578361, 0.01610787])
-        mr = np.ones(3)
-        br = np.zeros(3)
-        mw = np.ones(3)
-        # mw = np.ones(3) * -0.15
-
-        self.vals[:3, :] = self.vals[:3, :] * mr.reshape(3, 1) + br.reshape(3, 1)
-        self.vals[3:, :] = self.vals[3:, :] * mw.reshape(3, 1)
-        self.vals[3:, :] = self.vals[3:, :] - ((np.mean(self.vals[3:, :50], axis=1) +
-                                                np.mean(self.vals[3:, -50:], axis=1)) / 2).reshape(3, 1)
-        self.vals[:3] = self.vals[:3] / np.linalg.norm(self.vals[:3], axis=0)
+        self.imu_data[3:, :] = self.imu_data[3:, :] - ((np.mean(self.imu_data[3:, :50], axis=1) +
+                                                        np.mean(self.imu_data[3:, -50:], axis=1)) / 2).reshape(3, 1)
+        # TODO this seems like a problem
+        self.imu_data[:3] = self.imu_data[:3] / np.linalg.norm(self.imu_data[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
         bot_rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
 
         for i in range(1, self.mu.shape[-1]):
-            dt = self.t_imu[i] - self.t_imu[i - 1]
-            self.mu[:, i], self.P[..., i] = self.filter(self.P[..., i - 1], self.mu[:, i - 1], self.vals[:, i], dt)
+            dt = self.ts_imu[i] - self.ts_imu[i - 1]
+
+            self.mu[:, i], self.P[..., i] = self._filter_next(
+                self.P[..., i - 1],
+                self.mu[:, i - 1],
+                self.imu_data[:, i],
+                dt
+            )
             bot_rots[..., i] = Quaternions(self.mu[:4, i]).to_rotation_matrix()
 
-        return bot_rots
+        self.rots = bot_rots
 
-    def filter(self, P_last, mu_last, z_this, dt):
+    def _filter_next(self, P_last, mu_last, z_this, dt):
 
         # 2n sigma points
         n = P_last.shape[0]
@@ -151,41 +143,6 @@ class Ukf:
 
         return mu_this, P_this
 
-    @staticmethod
-    def make_plots(num, rots):
-        vicon = loadmat("data/vicon/viconRot{}.mat".format(num))
-        imu = loadmat("data/imu/imuRaw{}.mat".format(num))
-
-        R = vicon["rots"]
-        t_vicon = vicon["ts"].reshape(-1)
-        t_imu = imu["ts"].reshape(-1)
-        t0 = min(t_vicon[0], t_imu[0])
-        R = R[..., t_vicon > t_imu[0]]
-        r = rots[..., t_imu > t_vicon[0]]
-
-        labels = ["Roll", "Pitch", "Yaw"]
-
-        a = Ukf.rots_to_angles(r)
-        angs = Ukf.rots_to_angles(R)
-
-        for i in range(3):
-            plt.figure(i)
-            plt.plot(t_vicon[t_vicon > t_imu[0]] - t0, angs[i])
-            plt.plot(t_imu[t_imu > t_vicon[0]] - t0, a[i])
-            plt.xlabel("Time [s]")
-            plt.ylabel(labels[i] + " Angle [rad]")
-            plt.grid(True)
-            plt.legend(["Truth", "UKF"])
-        plt.show()
-
-    @staticmethod
-    def rots_to_angles(Rs):
-        roll = np.arctan2(Rs[2, 1], Rs[2, 2])
-        pitch = np.arctan2(-Rs[2, 0], np.sqrt(np.square(Rs[2, 1]) + np.square(Rs[2, 2])))
-        yaw = np.arctan2(Rs[1, 0], Rs[0, 0])
-
-        return roll, pitch, yaw
-
 
 if __name__ == "__main__":
     from data.trainer import Trainer
@@ -202,12 +159,6 @@ if __name__ == "__main__":
     Q = np.identity(Ukf.N_DIM) * 2.993
     Q[:3, :3] *= 2
 
-    # Rr = np.array([.05, .05, .05])
-    # Rw = np.array([.01 for i in range(3)])
-    # R = np.identity(Ukf.N_DIM) * np.concatenate((Rr, Rw))
-    # Q = np.identity(Ukf.N_DIM) * 4
-    # Q[:3, :3] *= 2
-
     num = args["datanum"]
     if not num:
         planner = SimplePlanner()
@@ -215,12 +166,10 @@ if __name__ == "__main__":
     else:
         source = DataStore(dataset_number=num, path_to_data="data")
 
-    f = Ukf(source.ts_imu, source.data_imu, R, Q)
+    f = Ukf(source, R, Q)
     f.filter_data()
 
     if not num:
-        roll, pitch, yaw = f.rots_to_angles(f.rots)
-        angs = np.vstack((roll, pitch, yaw))
-        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angs_vicon, angs)
+        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angs_vicon, f.angles)
     else:
-        Ukf.make_plots(num, f.rots)
+        ImuFilter.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)
