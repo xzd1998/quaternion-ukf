@@ -65,7 +65,7 @@ class SimplePlanner(TrajectoryPlanner):
 
 class RoundTripPlanner(TrajectoryPlanner):
 
-    def __init__(self, noise_stddev=0.1, drift_stddev=0.0004):
+    def __init__(self, noise_stddev=0.1, drift_stddev=0.002):
         duration = 30
         dt = 0.01
         da = 1 / 2000 * np.array([1, 1, 0])

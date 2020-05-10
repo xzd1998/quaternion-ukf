@@ -51,10 +51,27 @@ class ImuFilter(ABC):
         """Acceleromter data"""
         return np.copy(self.source.imu_data[:3])
 
-    @lazy
+    @property
     def vel_data(self):
         """Gyro data"""
         return np.copy(self.source.imu_data[3:])
+
+    @staticmethod
+    def _remove_zero_avg(data, n=50):
+        estimated_zero_avg = (np.mean(data[:, :n], axis=1) + np.mean(data[:, -n:], axis=1)) / 2
+        return data - estimated_zero_avg.reshape(data.shape[0], 1)
+
+    @staticmethod
+    def _normalize_data(data):
+        return data / np.linalg.norm(data, axis=0)
+
+    @staticmethod
+    def _high_pass_data(data, cutoff, dt):
+        rc = 1 / (cutoff * 2 * np.pi)
+        a = rc / (rc + dt)
+        result = np.copy(data)
+        result[:, 1:] = a * result[:, :-1] + a * np.diff(data, axis=1)
+        return result
 
     @staticmethod
     def plot_comparison(rots_est, ts_imu, rots_vicon, ts_vicon):

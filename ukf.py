@@ -13,36 +13,62 @@ from quaternions import Quaternions
 
 class Ukf(ImuFilter):
 
-    N_DIM = 6
+    n = 6
 
-    def __init__(self, source, R, Q):
+    def __init__(self, source, R, Q, alpha=0.9, beta=2, kappa=3):
 
         super().__init__(source)
 
         self.R = R
         self.Q = Q
+        self.alpha = alpha
+        self.beta = beta
+        self.kappa = kappa
 
         # Initialize covariance history and state history
-        self.mu = np.zeros((Ukf.N_DIM + 1, self.imu_data.shape[-1]))
+        self.mu = np.zeros((Ukf.n + 1, self.imu_data.shape[-1]))
         self.mu[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])
-        self.P = np.zeros((Ukf.N_DIM, Ukf.N_DIM, self.mu.shape[-1]))
-        self.P[..., 0] = np.identity(Ukf.N_DIM) * .5
+        self.P = np.zeros((Ukf.n, Ukf.n, self.mu.shape[-1]))
+        self.P[..., 0] = np.identity(Ukf.n) * .5
 
-        self.t = 0
+        self._t = 0
+
+        self.zeta = self.alpha ** 2 * (self.n + self.kappa) - self.n
+
+        w0m = self.zeta / (self.n + self.zeta)
+        w0c = w0m + 1 - self.alpha ** 2 + self.beta
+        wi = 1 / (2 * (self.n + self.zeta))
+
+        self.weights_mu = np.insert(np.ones(2 * self.n) * wi, 0, w0m)
+        self.weights_p = np.insert(np.ones(2 * self.n) * wi, 0, w0c)
+
+    def _debug_print(self, t_min, t_max, *contents):
+        if t_min <= self._t <= t_max:
+            print("Time {} seconds".format(self._t))
+            for content in contents:
+                print(content)
+
+    @staticmethod
+    def _get_sigma_distances(P_last):
+        n = P_last.shape[0]
+        m = n
+        S = np.linalg.cholesky(m * P_last)  # + self.Q)
+        W = np.concatenate((S, -S), axis=1)
+        return np.concatenate((np.zeros((n, 1)), W), axis=1)
 
     def filter_data(self):
 
-        self.imu_data[3:, :] = self.imu_data[3:, :] - ((np.mean(self.imu_data[3:, :50], axis=1) +
-                                                        np.mean(self.imu_data[3:, -50:], axis=1)) / 2).reshape(3, 1)
-        # Normalized because the gravity vector is also normalized
-        self.imu_data[:3] = self.imu_data[:3] / np.linalg.norm(self.imu_data[:3], axis=0)
+        self.imu_data[:3] = self._normalize_data(self.imu_data[:3])
 
-        bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
-        bot_rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
+        # TODO this is cheating
+        self.imu_data[3:] = self._remove_zero_avg(self.imu_data[3:])
+
+        rots = np.zeros((3, 3, self.mu.shape[-1]))
+        rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.ts_imu[i] - self.ts_imu[i - 1]
-            self.t += dt
+            self._t = self.ts_imu[i]
 
             self.mu[:, i], self.P[..., i] = self._filter_next(
                 self.P[..., i - 1],
@@ -50,57 +76,43 @@ class Ukf(ImuFilter):
                 self.imu_data[:, i],
                 dt
             )
-            bot_rots[..., i] = Quaternions(self.mu[:4, i]).to_rotation_matrix()
+            rots[..., i] = Quaternions(self.mu[:4, i]).to_rotation_matrix()
 
-        self.rots = bot_rots
-
-    def _debug_print(self, t_min, t_max, *contents):
-        if t_min <= self.t <= t_max:
-            print("Time {} seconds".format(self.t))
-            for content in contents:
-                print(content)
+        self.rots = rots
 
     def _filter_next(self, P_last, mu_last, z_this, dt):
 
-        # 2n sigma points
-        n = P_last.shape[0]
-        m = np.sqrt(n)
-        S = np.linalg.cholesky(P_last)  # + self.Q)
-        W = np.concatenate((m * S, -m * S), axis=1)
-        W = np.concatenate((np.zeros((n, 1)), W), axis=1)
+        W = self._get_sigma_distances(P_last)
 
         # self._debug_print(11.7, 12, np.round(P_last, 2), np.round(S, 2))
 
         # Equation 34: Form sigma points based on prior mean and covariance data
         qW = Quaternions.from_vectors(W[:3])
         q_last = Quaternions(mu_last[:4])
-        q_sigpt = q_last.q_multiply(qW)
+        q_sigpt = qW.q_multiply(q_last)
 
         wW = W[3:]
         w_last = mu_last[4:]
-        w_sigpt = w_last.reshape(-1, 1) * np.ones(wW.shape) + wW
+        w_sigpt = w_last.reshape(-1, 1) + wW
 
         # Equations 9-11: form q_delta
-        wd = w_sigpt * dt
-        qd = Quaternions.from_vectors(wd)
+        qd = Quaternions.from_vectors(w_sigpt * dt)
 
         # Equation 22: Apply non-linear function A with process noise of zero
-        # qY = q_sigpt.q_multiply(qd)
         qY = qd.q_multiply(q_sigpt)
         Y = np.concatenate((qY.array, w_sigpt))
 
         # Equations 52-55: Use mean-finding algorithm to satisfy Equation 38
-        Y[:4, :] = Y[:4, :] * np.sign(Y[0, :])
+        Y[:4] = Y[:4] * np.sign(Y[0])
         q1 = Quaternions(Y[:4, 0])
-        qs = Quaternions(Y[:4, :])
+        qs = Quaternions(Y[:4])
         q_mean = qs.find_q_mean(q1)
-        w_mean = np.mean(Y[4:, :], axis=1)
+        w_mean = np.mean(Y[4:], axis=1)
         mu_this_est = np.concatenate((q_mean.array.reshape(-1), w_mean.reshape(-1)))
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
-        rWp = q_mean.inverse().q_multiply(qs).to_vectors()
-        # rWp = qs.q_multiply(q_mean.inverse()).to_vectors()
-        wWp = Y[4:, :] - w_mean.reshape(-1, 1)
+        rWp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())
+        wWp = Y[4:] - w_mean.reshape(-1, 1)
         Wp = np.concatenate((rWp, wWp))
 
         # Equation 64
@@ -110,10 +122,8 @@ class Ukf(ImuFilter):
 
         # Equation 27 and 40
         g = Quaternions(np.array([0, 0, 0, 1]))
-        # gp = qs.inverse().q_multiply(g).q_multiply(qs)
         gp = qs.q_multiply(g).q_multiply(qs.inverse())
-        Z = np.concatenate((gp.array[1:], Y[4:, :]))
-
+        Z = np.concatenate((gp.array[1:], Y[4:]))
 
         # Equation 48
         z_est = np.mean(Z, axis=1)
@@ -133,15 +143,14 @@ class Ukf(ImuFilter):
         K = np.matmul(Pxz, np.linalg.inv(Pvv))
 
         # Equation 74
-        r_this = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
-        q_this = Quaternions.from_vectors(r_this[:3])
-        w_this = r_this[3:]
+        correction = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
+        q_correction = Quaternions.from_vectors(correction[:3])
+        w_correction = correction[3:]
 
         # Equation 46
         mu_this = np.zeros(mu_this_est.shape)
-        mu_this[:4] = Quaternions(mu_this_est[:4]).q_multiply(q_this).array
-        # mu_this[:4] = q_this.q_multiply(Quaternions(mu_this_est[:4])).array
-        mu_this[4:] = mu_this_est[4:] + w_this
+        mu_this[:4] = Quaternions(mu_this_est[:4]).q_multiply(q_correction).array  #
+        mu_this[4:] = mu_this_est[4:] + w_correction
 
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
@@ -159,10 +168,10 @@ if __name__ == "__main__":
 
     # Noise parameters for UKF
     Rr = np.array([.05, .05, .15])
-    Rw = np.array([.01 for i in range(3)])
-    R = np.identity(Ukf.N_DIM) * np.concatenate((Rr, Rw))
-    Q = np.identity(Ukf.N_DIM) * 2.993
-    Q[:3, :3] *= 2
+    Rw = np.array([.05 for i in range(3)])
+    R = np.identity(Ukf.n) * np.concatenate((Rr, Rw))
+    Q = np.identity(Ukf.n) * 2.993 * 2
+    Q[:3, :3] *= 1
 
     num = args["datanum"]
     if not num:

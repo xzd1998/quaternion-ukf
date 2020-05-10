@@ -137,6 +137,12 @@ def accs_to_roll_pitch(accs):
     return roll, pitch
 
 
+def normalize_vectors(vectors):
+    norm = np.linalg.norm(vectors, axis=0)
+    vectors[:, norm > 0] /= norm[norm > 0]
+    return vectors
+
+
 if __name__ == "__main__":
     rpy = np.random.randn(3, 1)
     print(rpy)
