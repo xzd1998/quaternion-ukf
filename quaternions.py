@@ -44,7 +44,7 @@ class Quaternions:
 
         for _ in range(iterations):
             err_quat = self.q_multiply(q_mean.inverse())  # Equation 52
-            # err_quat = Quaternions(err_quat.array * np.sign(err_quat.array[0]))
+            err_quat = Quaternions(err_quat.array * np.sign(err_quat.array[0]))
 
             err_rot = err_quat.to_vectors()
             err_rot_mean = np.mean(err_rot, axis=1)  # Equation 54
@@ -97,7 +97,7 @@ class Quaternions:
             v[..., not_ind] = theta[not_ind].astype(float) / np.sin(theta[not_ind] * .5) * self.array[1:, not_ind]
             return v
         v = theta.astype(float) / np.sin(theta * .5) * self.array[1:]
-        return v.astype(float)  # / np.linalg.norm(v, axis=0)
+        return v.astype(float) / np.linalg.norm(v, axis=0)
 
     def inverse(self):
         """

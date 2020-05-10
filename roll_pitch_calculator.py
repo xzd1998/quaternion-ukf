@@ -9,15 +9,14 @@ from data.trajectoryplanner import SimplePlanner
 from imufilter import ImuFilter
 
 
-class YawIntegrator(ImuFilter):
+class RollPitchCalculator(ImuFilter):
 
     N_DIM = 6
 
     def filter_data(self):
 
         roll, pitch = utilities.accs_to_roll_pitch(self.acc_data)
-        vectors = self._integrate_vel()
-        yaw = utilities.rots_to_angles_zyx(utilities.vectors_to_rots(vectors))[-1]
+        yaw = np.zeros(roll.shape[0])
         self.rots = utilities.angles_to_rots_zyx(roll, pitch, yaw)
 
 
@@ -33,12 +32,12 @@ if __name__ == "__main__":
     if not num:
         planner = SimplePlanner()
         source = DataMaker(planner)
-        m = np.ones(YawIntegrator.N_DIM)
-        b = np.zeros(YawIntegrator.N_DIM)
+        m = np.ones(RollPitchCalculator.N_DIM)
+        b = np.zeros(RollPitchCalculator.N_DIM)
     else:
         source = DataStore(dataset_number=num, path_to_data="data")
 
-    f = YawIntegrator(source)
+    f = RollPitchCalculator(source)
     f.filter_data()
 
     if not num:
