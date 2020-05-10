@@ -66,10 +66,10 @@ class QuaternionsTest(unittest.TestCase):
     def test_round_trip_vector(self):
         qlist = QuaternionsTest.get_random_qs(2)
         qs = Quaternions.from_quaternions(*qlist)
-        self.assertEqual(Quaternions.from_vector(qs.to_vectors()), qs)
+        self.assertEqual(Quaternions.from_vectors(qs.to_vectors()), qs)
 
     def test_zero_vector(self):
-        self.assertEqual(Quaternions.from_vector(np.zeros(3)), QuaternionsTest.q_identity)
+        self.assertEqual(Quaternions.from_vectors(np.zeros(3)), QuaternionsTest.q_identity)
 
     def test_find_mean_at_pi(self):
         q_rot_x_neg = Quaternions([0, -1, 0, 0])
@@ -79,9 +79,9 @@ class QuaternionsTest(unittest.TestCase):
 
     def test_find_mean_near_pi(self):
         dist = 0.1
-        q_near = Quaternions.from_vector([-np.pi + dist, 0, 0])
-        q_pi = Quaternions.from_vector([np.pi, 0, 0])
-        q_expected = Quaternions.from_vector([-np.pi + dist / 2, 0, 0])
+        q_near = Quaternions.from_vectors([-np.pi + dist, 0, 0])
+        q_pi = Quaternions.from_vectors([np.pi, 0, 0])
+        q_expected = Quaternions.from_vectors([-np.pi + dist / 2, 0, 0])
         q_0 = QuaternionsTest.get_random_qs(1)[0]
         qs = Quaternions.from_quaternions(q_near, q_pi)
         self.assertEqual(qs.find_q_mean(q_0), q_expected)

@@ -16,6 +16,7 @@ class TrajectoryPlanner:
         # if duration % dt != 0:
         #     raise ValueError("Duration {} s not divisible by time increment {} s".format(duration, dt))
 
+        np.random.seed(0)
         self.noise = np.random.randn(self.num_data) * noise_stddev
         self.drift = np.cumsum(np.random.randn(self.num_data) * drift_stddev)
 
@@ -46,10 +47,10 @@ class TrajectoryPlanner:
 
 class SimplePlanner(TrajectoryPlanner):
 
-    def __init__(self, noise_stddev=0.01, drift_stddev = 0.001):
+    def __init__(self, noise_stddev=0.1, drift_stddev=0.0004):
         duration = 20
         dt = 0.01
-        da = 1 / 4000  # 3450
+        da = 1 / 3450 * np.array([1, 1, 0])
         super().__init__(
             duration,
             dt,
@@ -59,6 +60,27 @@ class SimplePlanner(TrajectoryPlanner):
             TrajectoryPlanner.incrementer(da),
             TrajectoryPlanner.decrementer(da),
             TrajectoryPlanner.incrementer(da)
+        )
+
+
+class RoundTripPlanner(TrajectoryPlanner):
+
+    def __init__(self, noise_stddev=0.1, drift_stddev=0.0004):
+        duration = 30
+        dt = 0.01
+        da = 1 / 2000 * np.array([1, 1, 0])
+        super().__init__(
+            duration,
+            dt,
+            noise_stddev,
+            drift_stddev,
+            ((4, 7), (7, 13), (13, 16), (16, 19), (19, 25), (25, 28)),
+            TrajectoryPlanner.incrementer(da),
+            TrajectoryPlanner.decrementer(da),
+            TrajectoryPlanner.incrementer(da),
+            TrajectoryPlanner.decrementer(da),
+            TrajectoryPlanner.incrementer(da),
+            TrajectoryPlanner.decrementer(da)
         )
 
 

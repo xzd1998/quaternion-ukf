@@ -1,13 +1,12 @@
 import argparse
 
-import matplotlib.pyplot as plt
 import numpy as np
-from scipy.io import loadmat
+from scipy.constants import g
 
 from data import utilities
 from data.datamaker import DataMaker
 from data.datastore import DataStore
-from data.trajectoryplanner import SimplePlanner, StationaryPlanner
+from data.trajectoryplanner import SimplePlanner, StationaryPlanner, RoundTripPlanner
 from imufilter import ImuFilter
 from quaternions import Quaternions
 
@@ -29,11 +28,13 @@ class Ukf(ImuFilter):
         self.P = np.zeros((Ukf.N_DIM, Ukf.N_DIM, self.mu.shape[-1]))
         self.P[..., 0] = np.identity(Ukf.N_DIM) * .5
 
+        self.t = 0
+
     def filter_data(self):
 
         self.imu_data[3:, :] = self.imu_data[3:, :] - ((np.mean(self.imu_data[3:, :50], axis=1) +
                                                         np.mean(self.imu_data[3:, -50:], axis=1)) / 2).reshape(3, 1)
-        # TODO this seems like a problem
+        # Normalized because the gravity vector is also normalized
         self.imu_data[:3] = self.imu_data[:3] / np.linalg.norm(self.imu_data[:3], axis=0)
 
         bot_rots = np.zeros((3, 3, self.mu.shape[-1]))
@@ -41,6 +42,7 @@ class Ukf(ImuFilter):
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.ts_imu[i] - self.ts_imu[i - 1]
+            self.t += dt
 
             self.mu[:, i], self.P[..., i] = self._filter_next(
                 self.P[..., i - 1],
@@ -52,17 +54,25 @@ class Ukf(ImuFilter):
 
         self.rots = bot_rots
 
+    def _debug_print(self, t_min, t_max, *contents):
+        if t_min <= self.t <= t_max:
+            print("Time {} seconds".format(self.t))
+            for content in contents:
+                print(content)
+
     def _filter_next(self, P_last, mu_last, z_this, dt):
 
         # 2n sigma points
         n = P_last.shape[0]
         m = np.sqrt(n)
-        S = np.linalg.cholesky(P_last + self.Q)
+        S = np.linalg.cholesky(P_last)  # + self.Q)
         W = np.concatenate((m * S, -m * S), axis=1)
         W = np.concatenate((np.zeros((n, 1)), W), axis=1)
 
+        # self._debug_print(11.7, 12, np.round(P_last, 2), np.round(S, 2))
+
         # Equation 34: Form sigma points based on prior mean and covariance data
-        qW = Quaternions.from_vector(W[:3])
+        qW = Quaternions.from_vectors(W[:3])
         q_last = Quaternions(mu_last[:4])
         q_sigpt = q_last.q_multiply(qW)
 
@@ -71,20 +81,12 @@ class Ukf(ImuFilter):
         w_sigpt = w_last.reshape(-1, 1) * np.ones(wW.shape) + wW
 
         # Equations 9-11: form q_delta
-        ad = np.linalg.norm(w_sigpt, axis=0) * dt
-        ed = np.zeros(w_sigpt.shape)
-        if np.any(ad == 0):
-            ind = ad == 0
-            not_ind = ad != 0
-            ed[:, ind] = np.zeros((3, np.sum(ind)))
-            ed[:, not_ind] = w_sigpt[:, not_ind].astype(float) * dt / ad[not_ind]
-        else:
-            ed = -w_sigpt.astype(float) * dt / ad
-        qd = np.array([np.cos(ad * .5), ed[0] * np.sin(ad * .5), ed[1] * np.sin(ad * .5), ed[2] * np.sin(ad * .5)])
-        qd = Quaternions(qd.astype(float) / np.linalg.norm(qd, axis=0))
+        wd = w_sigpt * dt
+        qd = Quaternions.from_vectors(wd)
 
         # Equation 22: Apply non-linear function A with process noise of zero
-        qY = q_sigpt.q_multiply(qd)
+        # qY = q_sigpt.q_multiply(qd)
+        qY = qd.q_multiply(q_sigpt)
         Y = np.concatenate((qY.array, w_sigpt))
 
         # Equations 52-55: Use mean-finding algorithm to satisfy Equation 38
@@ -103,13 +105,15 @@ class Ukf(ImuFilter):
 
         # Equation 64
         Pk_bar = np.matmul(Wp, Wp.T)
+        Pk_bar /= W.shape[1]
+        Pk_bar += self.Q
 
         # Equation 27 and 40
         g = Quaternions(np.array([0, 0, 0, 1]))
-        gp = qs.inverse().q_multiply(g).q_multiply(qs)
+        # gp = qs.inverse().q_multiply(g).q_multiply(qs)
+        gp = qs.q_multiply(g).q_multiply(qs.inverse())
         Z = np.concatenate((gp.array[1:], Y[4:, :]))
 
-        Pk_bar /= W.shape[1]
 
         # Equation 48
         z_est = np.mean(Z, axis=1)
@@ -130,12 +134,13 @@ class Ukf(ImuFilter):
 
         # Equation 74
         r_this = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
-        q_this = Quaternions.from_vector(r_this[:3])
+        q_this = Quaternions.from_vectors(r_this[:3])
         w_this = r_this[3:]
 
         # Equation 46
         mu_this = np.zeros(mu_this_est.shape)
         mu_this[:4] = Quaternions(mu_this_est[:4]).q_multiply(q_this).array
+        # mu_this[:4] = q_this.q_multiply(Quaternions(mu_this_est[:4])).array
         mu_this[4:] = mu_this_est[4:] + w_this
 
         # Equation 75:
@@ -161,7 +166,7 @@ if __name__ == "__main__":
 
     num = args["datanum"]
     if not num:
-        planner = SimplePlanner()
+        planner = RoundTripPlanner()
         source = DataMaker(planner)
     else:
         source = DataStore(dataset_number=num, path_to_data="data")
@@ -170,6 +175,6 @@ if __name__ == "__main__":
     f.filter_data()
 
     if not num:
-        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angs_vicon, f.angles)
+        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
     else:
         ImuFilter.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)
