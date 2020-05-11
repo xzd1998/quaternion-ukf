@@ -15,7 +15,7 @@ class Ukf(ImuFilter):
 
     n = 6
 
-    def __init__(self, source, R, Q, alpha=0.9, beta=2, kappa=3):
+    def __init__(self, source, R, Q, alpha=1, beta=2, kappa=2):
 
         super().__init__(source)
 
@@ -33,11 +33,17 @@ class Ukf(ImuFilter):
 
         self._t = 0
 
-        self.zeta = self.alpha ** 2 * (self.n + self.kappa) - self.n
+        self.free_param = self.alpha ** 2 * (self.n + self.kappa) - self.n
 
-        w0m = self.zeta / (self.n + self.zeta)
+        w0m = self.free_param / (self.n + self.free_param)
+        qs_to_pad = 2 * self.n * w0m / (1 - w0m) - 1
+        if qs_to_pad - np.round(qs_to_pad) < 1e-5:
+            self.qs_to_pad = int(np.round(qs_to_pad))
+        else:
+            raise ValueError("Can't weight with fraction of quaternion to find quaternion mean")
+
         w0c = w0m + 1 - self.alpha ** 2 + self.beta
-        wi = 1 / (2 * (self.n + self.zeta))
+        wi = 1 / (2 * (self.n + self.free_param))
 
         self.weights_mu = np.insert(np.ones(2 * self.n) * wi, 0, w0m)
         self.weights_p = np.insert(np.ones(2 * self.n) * wi, 0, w0c)
@@ -48,20 +54,15 @@ class Ukf(ImuFilter):
             for content in contents:
                 print(content)
 
-    @staticmethod
-    def _get_sigma_distances(P_last):
-        n = P_last.shape[0]
-        m = n
-        S = np.linalg.cholesky(m * P_last)  # + self.Q)
+    def _get_sigma_distances(self, P_last):
+        m = self.n + self.free_param
+        S = np.linalg.cholesky(m * P_last)
         W = np.concatenate((S, -S), axis=1)
-        return np.concatenate((np.zeros((n, 1)), W), axis=1)
+        return np.concatenate((np.zeros((self.n, 1)), W), axis=1)
 
     def filter_data(self):
 
         self.imu_data[:3] = self._normalize_data(self.imu_data[:3])
-
-        # TODO this is cheating
-        self.imu_data[3:] = self._remove_zero_avg(self.imu_data[3:])
 
         rots = np.zeros((3, 3, self.mu.shape[-1]))
         rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
@@ -106,8 +107,13 @@ class Ukf(ImuFilter):
         Y[:4] = Y[:4] * np.sign(Y[0])
         q1 = Quaternions(Y[:4, 0])
         qs = Quaternions(Y[:4])
-        q_mean = qs.find_q_mean(q1)
-        w_mean = np.mean(Y[4:], axis=1)
+
+        extra_q1s = np.matmul(q1.array.reshape(-1, 1), np.ones((1, self.qs_to_pad)))
+        qs_padded = Quaternions(np.concatenate((extra_q1s, Y[:4]), axis=1))
+        q_mean = qs_padded.find_q_mean(q1)
+
+        w_mean = np.sum(self.weights_mu * Y[4:], axis=1)
+
         mu_this_est = np.concatenate((q_mean.array.reshape(-1), w_mean.reshape(-1)))
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
@@ -155,6 +161,8 @@ class Ukf(ImuFilter):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
+        self._debug_print(10, 11, qs)
+
         return mu_this, P_this
 
 
@@ -168,9 +176,9 @@ if __name__ == "__main__":
 
     # Noise parameters for UKF
     Rr = np.array([.05, .05, .15])
-    Rw = np.array([.05 for i in range(3)])
+    Rw = np.array([.05 for _ in range(3)])
     R = np.identity(Ukf.n) * np.concatenate((Rr, Rw))
-    Q = np.identity(Ukf.n) * 2.993 * 2
+    Q = np.identity(Ukf.n) * 4.5  # * 2.993 * 2
     Q[:3, :3] *= 1
 
     num = args["datanum"]

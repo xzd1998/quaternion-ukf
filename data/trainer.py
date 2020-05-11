@@ -11,8 +11,9 @@ class Trainer:
     Interface for training a linear regression model for accelerometer and gyro data
     """
 
-    m = np.array([-0.09363796, -0.09438229, 0.09449341, 0.01546466, 0.01578361, 0.01610787])
-    b = np.array([47.88161084, 47.23512485, -47.39899347, -5.75, -5.75, -5.9])
+    # Results from combined training on first three datasets
+    m = np.array([-0.0936, -0.0944, 0.0945, 0.0155, 0.0158, 0.0161])
+    b = np.array([47.9, 47.2, -47.4, -5.75, -5.75, -5.95])
 
     def __init__(self, rots, vals, ts_imu, ts_vicon):
         """
