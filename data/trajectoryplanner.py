@@ -47,7 +47,7 @@ class TrajectoryPlanner:
 
 class SimplePlanner(TrajectoryPlanner):
 
-    def __init__(self, noise_stddev=0.1, drift_stddev=0.0004):
+    def __init__(self, noise_stddev=0.02, drift_stddev=0.002):
         duration = 20
         dt = 0.01
         da = 1 / 3450 * np.array([1, 1, 0])

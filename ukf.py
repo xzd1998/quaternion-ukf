@@ -1,7 +1,6 @@
 import argparse
 
 import numpy as np
-from scipy.constants import g
 
 from data import utilities
 from data.datamaker import DataMaker
@@ -14,6 +13,7 @@ from quaternions import Quaternions
 class Ukf(ImuFilter):
 
     n = 6
+    g_vector = np.array([0, 0, 1])
 
     def __init__(self, source, R, Q, alpha=1, beta=2, kappa=2):
 
@@ -127,12 +127,13 @@ class Ukf(ImuFilter):
         Pk_bar += self.Q
 
         # Equation 27 and 40
-        g = Quaternions(np.array([0, 0, 0, 1]))
-        gp = qs.q_multiply(g).q_multiply(qs.inverse())
-        Z = np.concatenate((gp.array[1:], Y[4:]))
+        gs_est = qs.rotate_vector(self.g_vector)
+        Z = np.concatenate((gs_est, Y[4:]))
 
         # Equation 48
-        z_est = np.mean(Z, axis=1)
+        z_est = np.zeros(self.n)
+        z_est[3:] = np.mean(Z[3:], axis=1)
+        z_est[:3] = q_mean.rotate_vector(self.g_vector)
 
         # Equation 68
         # Equation 70
@@ -161,7 +162,7 @@ class Ukf(ImuFilter):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(10, 11, qs)
+        self._debug_print(0, 1, np.round(z_est, 2))
 
         return mu_this, P_this
 

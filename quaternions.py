@@ -99,6 +99,18 @@ class Quaternions:
         v = theta.astype(float) / np.sin(theta * .5) * self.array[1:]
         return v.astype(float)
 
+    def rotate_vector(self, vector):
+        """
+        Rotates a vector with this array of n quaternions
+        :param vector: (3,) numpy array to rotate
+        :return: (3, n) matrix of vectors if n > 1, otherwise a (3,) vector
+        """
+        dim0, *dims = vector.shape
+        if dim0 != 3 and not all(dims == 1):
+            raise ValueError("Can't rotate a vector of shape: {}".format(vector.shape))
+        q = Quaternions(np.insert(vector.reshape(-1), 0, 0))
+        return self.q_multiply(q).q_multiply(self.inverse()).array[1:]
+
     def inverse(self):
         """
         :return: the inverse of a quaternion or array of quaternions
