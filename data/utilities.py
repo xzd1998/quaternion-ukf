@@ -84,6 +84,24 @@ def vectors_to_rots(raw):
     return rots
 
 
+def rots_to_vectors(raw):
+    if len(raw.shape) == 2:
+        rots = raw.reshape(3, 3, 1)
+    else:
+        rots = raw
+
+    vecs = np.zeros((3, rots.shape[-1]))
+
+    thetas = np.arccos((rots[0, 0] + rots[1, 1] + rots[2, 2] - 1) / 2)
+    valids = thetas != 0
+
+    vecs[0, valids] = (rots[2, 1, valids] - rots[1, 2, valids]) / (2 * np.sin(thetas[valids]))
+    vecs[1, valids] = (rots[0, 2, valids] - rots[2, 0, valids]) / (2 * np.sin(thetas[valids]))
+    vecs[2, valids] = (rots[1, 0, valids] - rots[0, 1, valids]) / (2 * np.sin(thetas[valids]))
+
+    return vecs * thetas
+
+
 def angles_to_rots_zyx(roll, pitch, yaw):
     rots = np.zeros((3, 3, roll.shape[0]))
     rots[0, 0] = np.cos(yaw) * np.cos(pitch)

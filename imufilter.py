@@ -9,6 +9,8 @@ from data import utilities
 class ImuFilter(ABC):
     """Parent class for both the UKF and the NoFilter implementation"""
 
+    n = 6
+
     def __init__(self, source):
         self.source = source
         self.rots = None

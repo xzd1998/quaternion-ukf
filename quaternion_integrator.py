@@ -4,6 +4,7 @@ from scipy.constants import g
 from data import utilities
 from data.datamaker import DataMaker
 from data.trajectoryplanner import RoundTripPlanner
+from data import trajectoryplanner
 from imufilter import ImuFilter
 from quaternions import Quaternions
 
@@ -40,7 +41,7 @@ class QuaternionIntegrator(ImuFilter):
 
 if __name__ == "__main__":
 
-    planner = RoundTripPlanner()
+    planner = trajectoryplanner.round_trip_easy
     source = DataMaker(planner)
     m = np.ones(QuaternionIntegrator.N_DIM)
     b = np.zeros(QuaternionIntegrator.N_DIM)

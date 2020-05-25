@@ -65,10 +65,10 @@ class SimplePlanner(TrajectoryPlanner):
 
 class RoundTripPlanner(TrajectoryPlanner):
 
-    def __init__(self, noise_stddev=0.02, drift_stddev=0.002):
+    def __init__(self, acc_magnitude=0.0005, noise_stddev=0.02, drift_stddev=0.002):
         duration = 30
         dt = 0.01
-        da = 1 / 2000 * np.array([1, 1, 0])
+        da = acc_magnitude * np.array([1, 1, 0])
         super().__init__(
             duration,
             dt,
@@ -90,3 +90,6 @@ class StationaryPlanner(TrajectoryPlanner):
         duration = 60
         dt = 0.01
         super().__init__(duration, dt, 0, 0, [])
+
+
+round_trip_easy = RoundTripPlanner(acc_magnitude=1/8000, noise_stddev=0.02, drift_stddev=0.0001)

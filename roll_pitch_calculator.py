@@ -6,6 +6,7 @@ from data import utilities
 from data.datamaker import DataMaker
 from data.datastore import DataStore
 from data.trajectoryplanner import SimplePlanner
+from data import trajectoryplanner
 from imufilter import ImuFilter
 
 
@@ -30,7 +31,7 @@ if __name__ == "__main__":
 
     num = args["datanum"]
     if not num:
-        planner = SimplePlanner()
+        planner = trajectoryplanner.round_trip_easy
         source = DataMaker(planner)
         m = np.ones(RollPitchCalculator.N_DIM)
         b = np.zeros(RollPitchCalculator.N_DIM)
