@@ -10,6 +10,7 @@ from data import utilities
 class VectorUkf(ImuFilter):
 
     g_vector = np.array([0, 0, 1]).reshape(-1, 1)
+    n = 3
 
     def __init__(self, source, R, Q):
 
@@ -54,8 +55,8 @@ class VectorUkf(ImuFilter):
             )
 
         self.rots = utilities.vectors_to_rots(self.mu[:3])
-        for i in range(self.rots.shape[-1]):
-            self.rots[..., i] = self.rots[..., i].T
+        # for i in range(self.rots.shape[-1]):
+        #     self.rots[..., i] = self.rots[..., i].T
 
     def _filter_next(self, P_last, mu_last, z_this, dt):
 
@@ -63,11 +64,9 @@ class VectorUkf(ImuFilter):
 
         # Equation 34: Form sigma points based on prior mean and covariance data
         sigpts = mu_last.reshape(-1, 1) + W
-        v_sigpt = sigpts[:3]
-        w_sigpt = sigpts[3:]
 
         # Equation 22: Apply non-linear function A with process noise of zero
-        Y = np.concatenate((v_sigpt + w_sigpt * dt, w_sigpt))
+        Y = sigpts + z_this[3:].reshape(-1, 1) * dt
 
         mu_this_est = np.mean(Y, axis=1)
 
@@ -80,10 +79,10 @@ class VectorUkf(ImuFilter):
 
         # Equation 27 and 40
         gs_est = np.zeros((3, Y.shape[-1]))
-        vs = utilities.vectors_to_rots(Y[:3])
+        rs = utilities.vectors_to_rots(Y[:3])
         for i in range(Y.shape[-1]):
-            gs_est[:, i] = (vs[..., i] @ self.g_vector).reshape(-1)
-        Z = np.concatenate((gs_est, Y[3:]))
+            gs_est[:, i] = (rs[..., i].T @ self.g_vector).reshape(-1)
+        Z = gs_est
 
         # Equation 48
         z_est = np.mean(Z, axis=1)
@@ -103,7 +102,7 @@ class VectorUkf(ImuFilter):
         K = np.matmul(Pxz, np.linalg.inv(Pvv))
 
         # Equation 74
-        correction = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
+        correction = np.matmul(K, (z_this[:3] - z_est).reshape(-1, 1)).reshape(-1)
 
         # Equation 46
         mu_this = mu_this_est + correction
@@ -120,6 +119,7 @@ if __name__ == "__main__":
 
     # Noise parameters for UKF
     R = np.identity(VectorUkf.n) * .01
+    # R[5, 5] = .001
     Q = np.copy(R)
 
     planner = trajectoryplanner.round_trip_easy
