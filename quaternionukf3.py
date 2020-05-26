@@ -92,8 +92,8 @@ class QuaternionUkf3(ImuFilter):
         mu_this_est = q_mean.array.reshape(-1)
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
-        Wp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())
-        # Wp = q_mean.inverse().q_multiply(qs).to_vectors()
+        # Wp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())
+        Wp = q_mean.inverse().q_multiply(qs).to_vectors()
 
         # Equation 64
         Pk_bar = np.matmul(Wp, Wp.T)
@@ -129,7 +129,7 @@ class QuaternionUkf3(ImuFilter):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(0, 0.1, np.round(W, 3))
+        self._debug_print(0, 0.5, np.round(Pxz, 3))
 
         return mu_this, P_this
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     num = args["datanum"]
     if not num:
-        planner = RoundTripPlanner()
+        planner = trajectoryplanner.round_trip_easy
         source = DataMaker(planner)
     else:
         source = DataStore(dataset_number=num, path_to_data="data")
