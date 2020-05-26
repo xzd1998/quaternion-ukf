@@ -92,4 +92,4 @@ class StationaryPlanner(TrajectoryPlanner):
         super().__init__(duration, dt, 0, 0, [])
 
 
-round_trip_easy = RoundTripPlanner(acc_magnitude=1/8000, noise_stddev=0.02, drift_stddev=0.0001)
+round_trip_easy = RoundTripPlanner(acc_magnitude=1/8000, noise_stddev=0.02, drift_stddev=0.0002)

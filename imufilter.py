@@ -64,8 +64,8 @@ class ImuFilter(ABC):
         return data - estimated_zero_avg.reshape(data.shape[0], 1)
 
     @staticmethod
-    def _normalize_data(data):
-        return data / np.linalg.norm(data, axis=0)
+    def _normalize_data(data, mag=1):
+        return data / np.linalg.norm(data, axis=0) * mag
 
     @staticmethod
     def _high_pass_data(data, cutoff, dt):

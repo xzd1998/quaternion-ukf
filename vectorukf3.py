@@ -7,7 +7,7 @@ from imufilter import ImuFilter
 from data import utilities
 
 
-class VectorUkf(ImuFilter):
+class VectorUkf3(ImuFilter):
 
     g_vector = np.array([0, 0, 1]).reshape(-1, 1)
     n = 3
@@ -110,7 +110,7 @@ class VectorUkf(ImuFilter):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(10, 0.1, np.round(z_diff.T, 2))
+        self._debug_print(10, 0.1, np.round(K.T, 2))
 
         return mu_this, P_this
 
@@ -118,14 +118,14 @@ class VectorUkf(ImuFilter):
 if __name__ == "__main__":
 
     # Noise parameters for UKF
-    R = np.identity(VectorUkf.n) * .01
+    R = np.identity(VectorUkf3.n) * .01
     # R[5, 5] = .001
     Q = np.copy(R)
 
     planner = trajectoryplanner.round_trip_easy
     source = DataMaker(planner)
 
-    f = VectorUkf(source, R, Q)
+    f = VectorUkf3(source, R, Q)
     f.filter_data()
 
     utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
