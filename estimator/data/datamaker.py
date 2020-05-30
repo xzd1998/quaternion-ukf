@@ -1,9 +1,8 @@
 import numpy as np
-from scipy.constants import g
 
-from data import utilities
 from data.datasource import DataSource
-from data.trajectoryplanner import *
+from data import utilities
+from data.trajectoryplanner import SimplePlanner
 
 
 class DataMaker(DataSource):

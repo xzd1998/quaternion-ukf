@@ -1,17 +1,16 @@
 import argparse
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from data import utilities
 from data.datamaker import DataMaker
 from data.datastore import DataStore
-from data.trajectoryplanner import SimplePlanner, StationaryPlanner, RoundTripPlanner
-from imufilter import ImuFilter
-from quaternions import Quaternions
+from data.trajectoryplanner import RoundTripPlanner
+from core.estimator import Estimator
+from core.quaternions import Quaternions
 
 
-class QuaternionUkf(ImuFilter):
+class QuaternionUkf(Estimator):
 
     n = 6
     g_vector = np.array([0, 0, 1])
@@ -178,7 +177,6 @@ class QuaternionUkf(ImuFilter):
 
 
 if __name__ == "__main__":
-    from data.trainer import Trainer
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-D", "--datanum", required=False, help="Number of data file (1 to 3 inclusive)")
@@ -209,4 +207,4 @@ if __name__ == "__main__":
     if not num:
         utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
     else:
-        ImuFilter.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)
+        Estimator.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)

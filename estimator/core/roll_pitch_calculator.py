@@ -1,16 +1,13 @@
 import argparse
-import matplotlib.pyplot as plt
 import numpy as np
 
-from data import utilities
+from data import utilities, trajectoryplanner
 from data.datamaker import DataMaker
 from data.datastore import DataStore
-from data.trajectoryplanner import SimplePlanner
-from data import trajectoryplanner
-from imufilter import ImuFilter
+from core.estimator import Estimator
 
 
-class RollPitchCalculator(ImuFilter):
+class RollPitchCalculator(Estimator):
 
     N_DIM = 6
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from data import utilities
 
 
-class ImuFilter(ABC):
+class Estimator(ABC):
     """Parent class for both the UKF and the NoFilter implementation"""
 
     n = 6

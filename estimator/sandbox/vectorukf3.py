@@ -1,13 +1,12 @@
 import numpy as np
 
 from data.datamaker import DataMaker
-from data.trajectoryplanner import RoundTripPlanner
 from data import trajectoryplanner
-from imufilter import ImuFilter
+from core.estimator import Estimator
 from data import utilities
 
 
-class VectorUkf3(ImuFilter):
+class VectorUkf3(Estimator):
 
     g_vector = np.array([0, 0, 1]).reshape(-1, 1)
     n = 3

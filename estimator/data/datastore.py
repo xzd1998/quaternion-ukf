@@ -1,11 +1,7 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 from scipy.io import loadmat
-from scipy import constants
 
-from data.datamaker import DataMaker
-from data import utilities
 from data.datasource import DataSource
 from data.trainer import Trainer
 
@@ -56,6 +52,6 @@ class DataStore(DataSource):
 
 
 if __name__ == "__main__":
-    from data.trainer import Trainer, Trainer
+    from estimator.data import Trainer, Trainer
 
     store = DataStore(dataset_number=1)

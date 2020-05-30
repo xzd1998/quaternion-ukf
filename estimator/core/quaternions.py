@@ -1,12 +1,4 @@
-"""
-Filename: quaternion.py
-Author: Matt Lisle
-Date: 02/10/19
-Description: Quaternion toolbox for UKF
-"""
-
 import numpy as np
-from warnings import warn
 
 
 class Quaternions:

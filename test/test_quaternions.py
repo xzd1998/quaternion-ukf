@@ -1,13 +1,8 @@
-"""
-Filename: test_quaternions.py
-Author: Matt Lisle
-Date: 02/10/19
-Description: Quaternion unit tests
-"""
+import unittest
 
 import numpy as np
-import unittest
-from quaternions import Quaternions, ZeroQuaternionException
+
+from core.quaternions import Quaternions, ZeroQuaternionException
 
 
 class QuaternionsTest(unittest.TestCase):

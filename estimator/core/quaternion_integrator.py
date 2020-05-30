@@ -1,15 +1,12 @@
 import numpy as np
-from scipy.constants import g
 
-from data import utilities
+from data import utilities, trajectoryplanner
 from data.datamaker import DataMaker
-from data.trajectoryplanner import RoundTripPlanner
-from data import trajectoryplanner
-from imufilter import ImuFilter
-from quaternions import Quaternions
+from core.estimator import Estimator
+from core.quaternions import Quaternions
 
 
-class QuaternionIntegrator(ImuFilter):
+class QuaternionIntegrator(Estimator):
 
     N_DIM = 6
 

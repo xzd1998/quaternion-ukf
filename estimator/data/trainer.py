@@ -115,8 +115,8 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    from data.datastore import DataStore
-    from data.datamaker import DataMaker
+    from estimator.data import DataStore
+    from estimator.data.datamaker import DataMaker
 
     store = DataStore(dataset_number=1)
     planner = SimplePlanner()
