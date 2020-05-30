@@ -34,9 +34,11 @@ class QuaternionUkf3(ImuFilter):
         self.P[..., 0] = np.identity(self.n) * .05
 
         self._t = 0
+        self.Wps = None
+        self.iteration = None
 
-    def _debug_print(self, t_min, t_max, *contents):
-        if t_min <= self._t <= t_max:
+    def _debug_print(self, t_min, duration, *contents):
+        if t_min <= self._t <= t_min + duration:
             print("Time {} seconds".format(self._t))
             for content in contents:
                 print(content)
@@ -54,7 +56,11 @@ class QuaternionUkf3(ImuFilter):
         rots = np.zeros((3, 3, self.mu.shape[-1]))
         rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
 
+        self.Wps = np.zeros((3, 2 * self.n + 1, self.num_data))
+        self.iteration = 0
+
         for i in range(1, self.mu.shape[-1]):
+            self.iteration = i
             dt = self.ts_imu[i] - self.ts_imu[i - 1]
             self._t = self.ts_imu[i]
 
@@ -94,6 +100,7 @@ class QuaternionUkf3(ImuFilter):
         # Equations 65-67: Transform Y into W', notated as Wp for prime
         # Wp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())
         Wp = q_mean.inverse().q_multiply(qs).to_vectors()
+        self.Wps[..., self.iteration] = np.copy(Wp)
 
         # Equation 64
         Pk_bar = np.matmul(Wp, Wp.T)
@@ -129,7 +136,7 @@ class QuaternionUkf3(ImuFilter):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(0, 0.5, np.round(Pxz, 3))
+        self._debug_print(12.15, 0.2, np.round(Wp, 2))
 
         return mu_this, P_this
 
@@ -149,7 +156,7 @@ if __name__ == "__main__":
 
     num = args["datanum"]
     if not num:
-        planner = trajectoryplanner.round_trip_easy
+        planner = RoundTripPlanner()
         source = DataMaker(planner)
     else:
         source = DataStore(dataset_number=num, path_to_data="data")
@@ -158,6 +165,19 @@ if __name__ == "__main__":
     f.filter_data()
 
     if not num:
-        utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
+        utilities.plot_rowwise_data(
+            ["z-axis"],
+            ["x", "y", "z"],
+            [source.ts, source.ts],
+            source.angles,
+            f.angles
+        )
+        # Wps = [f.Wps[:, i, :] for i in range(f.Wps.shape[1])]
+        # utilities.plot_rowwise_data(
+        #     [i for i in range(f.Wps.shape[1])],
+        #     ["x", "y", "z"],
+        #     [source.ts for _ in range(f.Wps.shape[1])],
+        #     *Wps
+        # )
     else:
         ImuFilter.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)

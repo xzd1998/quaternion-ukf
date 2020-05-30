@@ -95,9 +95,11 @@ class Quaternions:
             not_ind = theta != 0
             v[..., ind] = np.zeros((3, np.sum(ind)))
             v[..., not_ind] = theta[not_ind].astype(float) / np.sin(theta[not_ind] * .5) * self.array[1:, not_ind]
-            return v
-        v = theta.astype(float) / np.sin(theta * .5) * self.array[1:]
-        return v.astype(float)
+        else:
+            v = theta.astype(float) / np.sin(theta * .5) * self.array[1:]
+        v[v > np.pi] -= 2 * np.pi
+        v[v < -np.pi] += 2 * np.pi
+        return v
 
     def rotate_vector(self, vector):
         """

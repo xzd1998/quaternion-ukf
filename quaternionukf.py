@@ -125,8 +125,8 @@ class QuaternionUkf(ImuFilter):
         mu_this_est = np.concatenate((q_mean.array.reshape(-1), w_mean.reshape(-1)))
 
         # Equations 65-67: Transform Y into W', notated as Wp for prime
-        rWp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())
-        # rWp = q_mean.inverse().q_multiply(qs).to_vectors()
+        # rWp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())
+        rWp = q_mean.inverse().q_multiply(qs).to_vectors()
         wWp = Y[4:] - w_mean.reshape(-1, 1)
         Wp = np.concatenate((rWp, wWp))
 
@@ -189,8 +189,8 @@ if __name__ == "__main__":
     Rr = np.array([.05, .05, .15])
     Rw = np.array([.05 for _ in range(3)])
     R = np.identity(QuaternionUkf.n) * np.concatenate((Rr, Rw))
-    # Q = np.copy(R)
-    Q = np.identity(QuaternionUkf.n) * 4.5  # * 2.993 * 2
+    Q = np.copy(R)
+    # Q = np.identity(QuaternionUkf.n) * 4.5  # * 2.993 * 2
     # Q[:3, :3] *= 1
     # Q[3:, 3:] *= 10
 
