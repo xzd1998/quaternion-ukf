@@ -3,7 +3,7 @@ from lazy import lazy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from data import utilities
+from estimator.data import utilities
 
 
 class Estimator(ABC):

@@ -1,8 +1,8 @@
 import numpy as np
 
-from data.datasource import DataSource
-from data import utilities
-from data.trajectoryplanner import SimplePlanner
+from estimator.data.datasource import DataSource
+from estimator.data import utilities
+from estimator.data.trajectoryplanner import SimplePlanner
 
 
 class DataMaker(DataSource):

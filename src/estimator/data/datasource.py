@@ -1,7 +1,7 @@
 from lazy import lazy
 import numpy as np
 
-from data import utilities
+from estimator.data import utilities
 
 
 class DataSource:

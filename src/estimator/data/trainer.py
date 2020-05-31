@@ -2,8 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 
-from data import utilities
-from data.trajectoryplanner import SimplePlanner
+from estimator.data import utilities
+from estimator.data.trajectoryplanner import SimplePlanner
 
 
 class Trainer:
@@ -115,7 +115,7 @@ class Trainer:
 
 
 if __name__ == "__main__":
-    from estimator.data import DataStore
+    from src.data import DataStore
     from estimator.data.datamaker import DataMaker
 
     store = DataStore(dataset_number=1)

@@ -1,15 +1,14 @@
 import numpy as np
+from scipy import constants
 
-from data.datamaker import DataMaker
-from data import trajectoryplanner
-from core.estimator import Estimator
-from data import utilities
+from estimator.data.datamaker import DataMaker
+from estimator.data import trajectoryplanner, utilities
+from estimator.estimator import Estimator
 
 
-class VectorUkf3(Estimator):
+class VectorUkf6(Estimator):
 
-    g_vector = np.array([0, 0, 1]).reshape(-1, 1)
-    n = 3
+    g_vector = np.array([0, 0, 1]).reshape(-1, 1) * constants.g
 
     def __init__(self, source, R, Q):
 
@@ -40,7 +39,7 @@ class VectorUkf3(Estimator):
                 print(content)
 
     def filter_data(self):
-        self.imu_data[:3] = self._normalize_data(self.imu_data[:3])
+        self.imu_data[:3] = self._normalize_data(self.imu_data[:3], mag=constants.g)
 
         for i in range(1, self.mu.shape[-1]):
             dt = self.ts_imu[i] - self.ts_imu[i - 1]
@@ -65,7 +64,8 @@ class VectorUkf3(Estimator):
         sigpts = mu_last.reshape(-1, 1) + W
 
         # Equation 22: Apply non-linear function A with process noise of zero
-        Y = sigpts + z_this[3:].reshape(-1, 1) * dt
+        Y = np.copy(sigpts)
+        Y[:3] = sigpts[:3] + sigpts[3:] * dt
 
         mu_this_est = np.mean(Y, axis=1)
 
@@ -81,7 +81,7 @@ class VectorUkf3(Estimator):
         rs = utilities.vectors_to_rots(Y[:3])
         for i in range(Y.shape[-1]):
             gs_est[:, i] = (rs[..., i].T @ self.g_vector).reshape(-1)
-        Z = gs_est
+        Z = np.concatenate((gs_est, Y[3:]))
 
         # Equation 48
         z_est = np.mean(Z, axis=1)
@@ -101,7 +101,7 @@ class VectorUkf3(Estimator):
         K = np.matmul(Pxz, np.linalg.inv(Pvv))
 
         # Equation 74
-        correction = np.matmul(K, (z_this[:3] - z_est).reshape(-1, 1)).reshape(-1)
+        correction = np.matmul(K, (z_this - z_est).reshape(-1, 1)).reshape(-1)
 
         # Equation 46
         mu_this = mu_this_est + correction
@@ -109,7 +109,7 @@ class VectorUkf3(Estimator):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(10, 0.1, np.round(K.T, 2))
+        self._debug_print(20, 1, np.round(z_this - z_est, 3))
 
         return mu_this, P_this
 
@@ -117,14 +117,14 @@ class VectorUkf3(Estimator):
 if __name__ == "__main__":
 
     # Noise parameters for UKF
-    R = np.identity(VectorUkf3.n) * .01
-    # R[5, 5] = .001
+    R = np.identity(VectorUkf6.n) * .01
+    R[2, 2] = .001
     Q = np.copy(R)
 
     planner = trajectoryplanner.round_trip_easy
     source = DataMaker(planner)
 
-    f = VectorUkf3(source, R, Q)
+    f = VectorUkf6(source, R, Q)
     f.filter_data()
 
     utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)

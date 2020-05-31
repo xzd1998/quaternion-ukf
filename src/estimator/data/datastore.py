@@ -1,9 +1,10 @@
-import numpy as np
 import os
+
+import numpy as np
 from scipy.io import loadmat
 
-from data.datasource import DataSource
-from data.trainer import Trainer
+from estimator.data.datasource import DataSource
+from estimator.data.trainer import Trainer
 
 
 class DataStore(DataSource):
@@ -52,6 +53,4 @@ class DataStore(DataSource):
 
 
 if __name__ == "__main__":
-    from estimator.data import Trainer, Trainer
-
     store = DataStore(dataset_number=1)

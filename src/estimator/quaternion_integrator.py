@@ -1,9 +1,10 @@
 import numpy as np
 
-from data import utilities, trajectoryplanner
-from data.datamaker import DataMaker
-from core.estimator import Estimator
-from core.quaternions import Quaternions
+from estimator.data import utilities
+from estimator.data.datamaker import DataMaker
+import estimator.data.trajectoryplanner
+from estimator.estimator import Estimator
+from estimator.quaternions import Quaternions
 
 
 class QuaternionIntegrator(Estimator):
@@ -38,7 +39,7 @@ class QuaternionIntegrator(Estimator):
 
 if __name__ == "__main__":
 
-    planner = trajectoryplanner.round_trip_easy
+    planner = estimator.data.trajectoryplanner.round_trip_easy
     source = DataMaker(planner)
     m = np.ones(QuaternionIntegrator.N_DIM)
     b = np.zeros(QuaternionIntegrator.N_DIM)

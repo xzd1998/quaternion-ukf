@@ -1,9 +1,9 @@
 import numpy as np
 
-from data import utilities, trajectoryplanner
-from data.datamaker import DataMaker
-from core.estimator import Estimator
-from core.quaternions import Quaternions
+from estimator.data import trajectoryplanner, utilities
+from estimator.data.datamaker import DataMaker
+from estimator.estimator import Estimator
+from estimator.quaternions import Quaternions
 
 
 class VectorIntegrator(Estimator):

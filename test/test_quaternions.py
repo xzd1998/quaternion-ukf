@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from core.quaternions import Quaternions, ZeroQuaternionException
+from estimator.quaternions import Quaternions, ZeroQuaternionException
 
 
 class QuaternionsTest(unittest.TestCase):
