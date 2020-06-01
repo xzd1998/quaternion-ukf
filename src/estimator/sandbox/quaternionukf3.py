@@ -6,13 +6,13 @@ from estimator.data import utilities
 from estimator.data.datamaker import DataMaker
 from estimator.data.datastore import DataStore
 from estimator.data.trajectoryplanner import RoundTripPlanner
-from estimator.estimator import Estimator
+from estimator.state_estimator import StateEstimator
 from estimator.quaternions import Quaternions
 
 
-class QuaternionUkf3(Estimator):
+class QuaternionUkf3(StateEstimator):
 
-    n = 3
+    state_dof = 3
     g_vector = np.array([0, 0, 1])
 
     def __init__(self, source, R, Q, alpha=1, beta=2, kappa=2):
@@ -47,7 +47,7 @@ class QuaternionUkf3(Estimator):
         W = np.concatenate((S, -S), axis=1) / 10
         return np.concatenate((np.zeros((self.n, 1)), W), axis=1)
 
-    def filter_data(self):
+    def estimate_state(self):
 
         self.imu_data[:3] = self._normalize_data(self.imu_data[:3])
 
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         source = DataStore(dataset_number=num, path_to_data="data")
 
     f = QuaternionUkf3(source, R, Q)
-    f.filter_data()
+    f.estimate_state()
 
     if not num:
         utilities.plot_rowwise_data(
@@ -177,4 +177,4 @@ if __name__ == "__main__":
         #     *Wps
         # )
     else:
-        Estimator.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)
+        StateEstimator.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)

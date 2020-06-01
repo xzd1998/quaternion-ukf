@@ -1,15 +1,20 @@
+"""Quaternion Integrator
+
+State estimator which integrates gyro data and keeps track of the state
+"""
+
 import numpy as np
 
 from estimator.data import utilities
 from estimator.data.datamaker import DataMaker
 import estimator.data.trajectoryplanner
-from estimator.estimator import Estimator
+from estimator.state_estimator import StateEstimator
 from estimator.quaternions import Quaternions
 
 
-class QuaternionIntegrator(Estimator):
+class QuaternionIntegrator(StateEstimator):
 
-    N_DIM = 6
+    state_dof = 6
 
     def __init__(self, source):
         super().__init__(source)
@@ -17,7 +22,7 @@ class QuaternionIntegrator(Estimator):
         self.acc_calc = np.zeros((3, self.num_data))
         self.g_quat = Quaternions([0, 0, 0, 1])
 
-    def filter_data(self):
+    def estimate_state(self):
         self.rots = np.zeros((3, 3, self.num_data))
         self._store_next(Quaternions([1, 0, 0, 0]))
 
@@ -40,12 +45,10 @@ class QuaternionIntegrator(Estimator):
 if __name__ == "__main__":
 
     planner = estimator.data.trajectoryplanner.round_trip_easy
-    source = DataMaker(planner)
-    m = np.ones(QuaternionIntegrator.N_DIM)
-    b = np.zeros(QuaternionIntegrator.N_DIM)
+    data_source = DataMaker(planner)
 
-    f = QuaternionIntegrator(source)
-    f.filter_data()
+    f = QuaternionIntegrator(data_source)
+    f.estimate_state()
 
-    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
+    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [data_source.ts, data_source.ts], data_source.angles, f.angles)
     # utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.acc_data / g, f.acc_calc)

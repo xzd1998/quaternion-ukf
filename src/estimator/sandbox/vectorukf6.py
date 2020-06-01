@@ -3,10 +3,10 @@ from scipy import constants
 
 from estimator.data.datamaker import DataMaker
 from estimator.data import trajectoryplanner, utilities
-from estimator.estimator import Estimator
+from estimator.state_estimator import StateEstimator
 
 
-class VectorUkf6(Estimator):
+class VectorUkf6(StateEstimator):
 
     g_vector = np.array([0, 0, 1]).reshape(-1, 1) * constants.g
 
@@ -18,19 +18,19 @@ class VectorUkf6(Estimator):
         self.Q = Q
 
         # Initialize covariance history and state history
-        self.mu = np.zeros((self.n, self.num_data))
+        self.mu = np.zeros((self.state_dof, self.num_data))
 
-        self.P = np.zeros((self.n, self.n, self.num_data))
-        self.P[..., 0] = np.identity(self.n) * .01
+        self.P = np.zeros((self.state_dof, self.state_dof, self.num_data))
+        self.P[..., 0] = np.identity(self.state_dof) * .01
 
         # Keeps track of timestep for debugging
         self._t = 0
 
     def _get_sigma_distances(self, P_last):
-        m = self.n
+        m = self.state_dof
         S = np.linalg.cholesky(m * (P_last + self.Q))  #
         W = np.concatenate((S, -S), axis=1)
-        return np.concatenate((np.zeros((self.n, 1)), W), axis=1)
+        return np.concatenate((np.zeros((self.state_dof, 1)), W), axis=1)
 
     def _debug_print(self, t_min, duration, *contents):
         if t_min <= self._t <= t_min + duration:
@@ -38,7 +38,7 @@ class VectorUkf6(Estimator):
             for content in contents:
                 print(content)
 
-    def filter_data(self):
+    def estimate_state(self):
         self.imu_data[:3] = self._normalize_data(self.imu_data[:3], mag=constants.g)
 
         for i in range(1, self.mu.shape[-1]):
@@ -117,7 +117,7 @@ class VectorUkf6(Estimator):
 if __name__ == "__main__":
 
     # Noise parameters for UKF
-    R = np.identity(VectorUkf6.n) * .01
+    R = np.identity(VectorUkf6.state_dof) * .01
     R[2, 2] = .001
     Q = np.copy(R)
 
@@ -125,6 +125,6 @@ if __name__ == "__main__":
     source = DataMaker(planner)
 
     f = VectorUkf6(source, R, Q)
-    f.filter_data()
+    f.estimate_state()
 
     utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)

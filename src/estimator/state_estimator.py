@@ -1,3 +1,10 @@
+"""State Estimator
+
+Defines interface for classes which estimate the state of an object equipped with an IMU.
+This state is meant to capture the orientation of, for example, a drone, and it may have
+three or six degrees of freedom depending on the implementation.
+"""
+
 from abc import ABC, abstractmethod
 from lazy import lazy
 import numpy as np
@@ -6,19 +13,20 @@ import matplotlib.pyplot as plt
 from estimator.data import utilities
 
 
-class Estimator(ABC):
+class StateEstimator(ABC):
     """Parent class for both the UKF and the NoFilter implementation"""
-
-    n = 6
 
     def __init__(self, source):
         self.source = source
         self.rots = None
+        self.state = None
 
     @abstractmethod
-    def filter_data(self):
-        """Applies chosen filtering technique to estimate rotation matrices"""
-        pass
+    def estimate_state(self):
+        """
+        Uses data provided by the source to estimate the state history of the filter
+        After calling this function, all properties of this class must not be null
+        """
 
     def _integrate_vel(self):
         angles = np.zeros((3, self.num_data))
@@ -27,6 +35,11 @@ class Estimator(ABC):
         print(da_dts.shape)
         angles[:, 1:] = np.cumsum(da_dts, axis=1)
         return angles
+
+    @property
+    def state_dof(self):
+        """Number of degrees of freedom in the state vector, which may be overriden to 3"""
+        return 6
 
     @property
     def num_data(self):
@@ -59,21 +72,8 @@ class Estimator(ABC):
         return np.copy(self.source.imu_data[3:])
 
     @staticmethod
-    def _remove_zero_avg(data, n=50):
-        estimated_zero_avg = (np.mean(data[:, :n], axis=1) + np.mean(data[:, -n:], axis=1)) / 2
-        return data - estimated_zero_avg.reshape(data.shape[0], 1)
-
-    @staticmethod
     def _normalize_data(data, mag=1):
         return data / np.linalg.norm(data, axis=0) * mag
-
-    @staticmethod
-    def _high_pass_data(data, cutoff, dt):
-        rc = 1 / (cutoff * 2 * np.pi)
-        a = rc / (rc + dt)
-        result = np.copy(data)
-        result[:, 1:] = a * result[:, :-1] + a * np.diff(data, axis=1)
-        return result
 
     @staticmethod
     def plot_comparison(rots_est, ts_imu, rots_vicon, ts_vicon):
@@ -81,19 +81,19 @@ class Estimator(ABC):
 
         rots_truth_copy = np.copy(rots_vicon)
         ts_vicon = np.copy(ts_vicon.reshape(-1))
-        t0 = min(ts_vicon[0], ts_imu[0])
+        t_start = min(ts_vicon[0], ts_imu[0])
         rots_truth_copy = rots_truth_copy[..., ts_vicon > ts_imu[0]]
         rots_est_copy = rots_est[..., ts_imu > ts_vicon[0]]
 
         labels = ["Roll", "Pitch", "Yaw"]
 
-        a = utilities.rots_to_angles_zyx(rots_est_copy)
-        angs = utilities.rots_to_angles_zyx(rots_truth_copy)
+        angs_est = utilities.rots_to_angles_zyx(rots_est_copy)
+        angs_truth = utilities.rots_to_angles_zyx(rots_truth_copy)
 
         for i in range(3):
             plt.figure(i)
-            plt.plot(ts_vicon[ts_vicon > ts_imu[0]] - t0, angs[i])
-            plt.plot(ts_imu[ts_imu > ts_vicon[0]] - t0, a[i])
+            plt.plot(ts_vicon[ts_vicon > ts_imu[0]] - t_start, angs_truth[i])
+            plt.plot(ts_imu[ts_imu > ts_vicon[0]] - t_start, angs_est[i])
             plt.xlabel("Time [s]")
             plt.ylabel(labels[i] + " Angle [rad]")
             plt.grid(True)

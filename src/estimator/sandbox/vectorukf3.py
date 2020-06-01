@@ -2,13 +2,13 @@ import numpy as np
 
 from estimator.data.datamaker import DataMaker
 from estimator.data import trajectoryplanner, utilities
-from estimator.estimator import Estimator
+from estimator.state_estimator import StateEstimator
 
 
-class VectorUkf3(Estimator):
+class VectorUkf3(StateEstimator):
 
     g_vector = np.array([0, 0, 1]).reshape(-1, 1)
-    n = 3
+    state_dof = 3
 
     def __init__(self, source, R, Q):
 
@@ -38,7 +38,7 @@ class VectorUkf3(Estimator):
             for content in contents:
                 print(content)
 
-    def filter_data(self):
+    def estimate_state(self):
         self.imu_data[:3] = self._normalize_data(self.imu_data[:3])
 
         for i in range(1, self.mu.shape[-1]):
@@ -124,6 +124,6 @@ if __name__ == "__main__":
     source = DataMaker(planner)
 
     f = VectorUkf3(source, R, Q)
-    f.filter_data()
+    f.estimate_state()
 
     utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)

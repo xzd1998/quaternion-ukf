@@ -4,14 +4,14 @@ import numpy as np
 from estimator.data import trajectoryplanner, utilities
 from estimator.data.datamaker import DataMaker
 from estimator.data.datastore import DataStore
-from estimator.estimator import Estimator
+from estimator.state_estimator import StateEstimator
 
 
-class RollPitchCalculator(Estimator):
+class RollPitchCalculator(StateEstimator):
 
     N_DIM = 6
 
-    def filter_data(self):
+    def estimate_state(self):
 
         roll, pitch = utilities.accs_to_roll_pitch(self.acc_data)
         yaw = np.zeros(roll.shape[0])
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         source = DataStore(dataset_number=num, path_to_data="data")
 
     f = RollPitchCalculator(source)
-    f.filter_data()
+    f.estimate_state()
 
     if not num:
         utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
