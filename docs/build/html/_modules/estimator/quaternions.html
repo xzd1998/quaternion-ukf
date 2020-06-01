@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>estimator.quaternions &mdash; QuaternionUkf 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> QuaternionUkf
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">estimator</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">QuaternionUkf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>estimator.quaternions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for estimator.quaternions</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Quaternions"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions">[docs]</a><span class="k">class</span> <span class="nc">Quaternions</span><span class="p">:</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1e-5</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">norm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ZeroQuaternionException</span><span class="p">(</span><span class="s2">&quot;Found zero quaternion in array: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">array</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">array</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_array</span>
+
+    <span class="nd">@array</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid number of dimensions </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_array</span> <span class="o">=</span> <span class="n">array</span>
+
+<div class="viewcode-block" id="Quaternions.find_q_mean"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.find_q_mean">[docs]</a>    <span class="k">def</span> <span class="nf">find_q_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_mean</span><span class="p">,</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds the mean of a quaternion or array of quaternions using gradient descent</span>
+<span class="sd">        :param iterations: max number of iterations</span>
+<span class="sd">        :param q_mean: initial mean guess</span>
+<span class="sd">        :return: final mean</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">q_mean</span><span class="o">.</span><span class="n">array</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot find mean starting at zero quaternion&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+            <span class="n">err_quat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">q_mean</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span>  <span class="c1"># Equation 52</span>
+            <span class="n">err_quat</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">err_quat</span><span class="o">.</span><span class="n">array</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">err_quat</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="n">err_rot</span> <span class="o">=</span> <span class="n">err_quat</span><span class="o">.</span><span class="n">to_vectors</span><span class="p">()</span>
+            <span class="n">err_rot_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">err_rot</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Equation 54</span>
+
+            <span class="n">err_quat_mean</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">from_vectors</span><span class="p">(</span><span class="n">err_rot_mean</span><span class="p">)</span>
+            <span class="n">q_mean</span> <span class="o">=</span> <span class="n">err_quat_mean</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">q_mean</span><span class="p">)</span>  <span class="c1"># Equation 55</span>
+
+            <span class="n">err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">err_rot_mean</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">err</span> <span class="o">&lt;</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">epsilon</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">q_mean</span></div>
+
+<div class="viewcode-block" id="Quaternions.q_multiply"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.q_multiply">[docs]</a>    <span class="k">def</span> <span class="nf">q_multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multiplies two quaternions (or arrays of quaternions) together taking advantage of numpy broadcasting</span>
+<span class="sd">        :param q2: quaternion to multiply with</span>
+<span class="sd">        :return: resulting quaternion or array of quaternions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">q2</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Quaternions.to_vectors"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.to_vectors">[docs]</a>    <span class="k">def</span> <span class="nf">to_vectors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts a quaternion or array of quaternions to a vector or array of vectors</span>
+<span class="sd">        :return: vector(s) as a numpy array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">theta</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="n">not_ind</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="n">v</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">)))</span>
+            <span class="n">v</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">not_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="n">not_ind</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="n">not_ind</span><span class="p">]</span> <span class="o">*</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="n">not_ind</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">v</span><span class="p">[</span><span class="n">v</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">v</span><span class="p">[</span><span class="n">v</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="k">return</span> <span class="n">v</span></div>
+
+<div class="viewcode-block" id="Quaternions.rotate_vector"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.rotate_vector">[docs]</a>    <span class="k">def</span> <span class="nf">rotate_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rotates a vector with this array of n quaternions</span>
+<span class="sd">        :param vector: (3,) numpy array to rotate</span>
+<span class="sd">        :return: (3, n) matrix of vectors if n &gt; 1, otherwise a (3,) vector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dim0</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span> <span class="o">=</span> <span class="n">vector</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">dim0</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">dims</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t rotate a vector of shape: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vector</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">vector</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inverse</span><span class="p">())</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
+
+<div class="viewcode-block" id="Quaternions.inverse"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.inverse">[docs]</a>    <span class="k">def</span> <span class="nf">inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: the inverse of a quaternion or array of quaternions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qinv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">qinv</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Quaternions.to_rotation_matrix"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.to_rotation_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">to_rotation_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts quaternion or array of quaternions to a rotation matrix or matrices</span>
+<span class="sd">        :return: rotation matrix or matrices as numpy arrays</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">u0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">uhat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="p">(</span><span class="n">u0</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">u</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">u0</span> <span class="o">*</span> <span class="n">uhat</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">R</span></div>
+
+<div class="viewcode-block" id="Quaternions.from_vectors"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.from_vectors">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_vectors</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Converts vector or array of vectors to an array of quaternions</span>
+<span class="sd">        :param raw: vector to convert</span>
+<span class="sd">        :return: resulting quaternion(s)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="n">not_ind</span> <span class="o">=</span> <span class="n">a</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="n">b</span><span class="p">[:,</span> <span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ind</span><span class="p">)))</span>
+            <span class="n">b</span><span class="p">[:,</span> <span class="n">not_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[:,</span> <span class="n">not_ind</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span><span class="p">[</span><span class="n">not_ind</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">b</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">q</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Quaternions.from_quaternions"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.from_quaternions">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_quaternions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">qs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs quaternions from list of singleton quaternion arrays</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">q</span><span class="o">.</span><span class="n">array</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qs</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Quaternions.from_list"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.Quaternions.from_list">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_list</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">qs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs quaternions from list of 4-element lists of numbers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">qs</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot compare equality of quaternion arrays with different shapes&quot;</span><span class="p">)</span>
+        <span class="n">tol</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">*</span> <span class="mi">10</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">array</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">array</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">n_digits</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="k">def</span> <span class="nf">get_elem_str</span><span class="p">(</span><span class="n">elem</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">n_digits</span><span class="p">))</span>
+
+        <span class="n">characters</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span>
+        <span class="n">characters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
+        <span class="n">characters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">quaternions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Quaternions</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;j&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">]</span>
+
+        <span class="n">max_chars</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">quaternions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">quaternions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+
+                <span class="n">n_chars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_elem_str</span><span class="p">(</span><span class="n">quaternions</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]))</span>
+
+                <span class="k">if</span> <span class="n">n_chars</span> <span class="o">&gt;</span> <span class="n">max_chars</span><span class="p">[</span><span class="n">row</span><span class="p">]:</span>
+                    <span class="n">max_chars</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_chars</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">quaternions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">characters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+            <span class="n">row</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">quaternions</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">],</span> <span class="n">axes</span><span class="p">):</span>
+                <span class="n">elem_str</span> <span class="o">=</span> <span class="n">get_elem_str</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_chars</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">elem_str</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">characters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+                <span class="n">characters</span> <span class="o">+=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">get_elem_str</span><span class="p">(</span><span class="n">element</span><span class="p">)]</span>
+                <span class="n">characters</span> <span class="o">+=</span> <span class="n">axis</span>
+                <span class="n">row</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">characters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">characters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">characters</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ZeroQuaternionException"><a class="viewcode-back" href="../../estimator.html#estimator.quaternions.ZeroQuaternionException">[docs]</a><span class="k">class</span> <span class="nc">ZeroQuaternionException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Matt Lisle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

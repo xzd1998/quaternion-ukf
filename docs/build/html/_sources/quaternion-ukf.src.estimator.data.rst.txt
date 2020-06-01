@@ -1,0 +1,62 @@
+quaternion\-ukf.src.estimator.data package
+==========================================
+
+Submodules
+----------
+
+quaternion\-ukf.src.estimator.data.datamaker module
+---------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.data.datamaker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.data.datasource module
+----------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.data.datasource
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.data.datastore module
+---------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.data.datastore
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.data.trainer module
+-------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.data.trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.data.trajectoryplanner module
+-----------------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.data.trajectoryplanner
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.data.utilities module
+---------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.data.utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: quaternion-ukf.src.estimator.data
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,4 +1,5 @@
-"""Trainer
+"""
+Trainer
 
 Calibrates IMU data using linear regression after transforming ground-truth data,
 which comes in the form of rotation matrices. The rotation matrix data is
@@ -7,25 +8,25 @@ to be able to calibrate the accelerometer and gyroscope, respectively.
 
 The trainer has two static members that are the results of training on the first
 three datasets:
-  * `IMU_COEFFICIENTS`: ith coeffient multiplies the ith row of `imu_data`
-  * `IMU_INTERCEPTS`: ith intercept is added to the ith row of `imu_data`
+* `IMU_COEFFICIENTS`: ith coeffient multiplies the ith row of `imu_data`
+* `IMU_INTERCEPTS`: ith intercept is added to the ith row of `imu_data`
 
 The convention above is slightly different from that listed in the IMU reference:
 :doc:`IMU reference <../../../docs/IMU_reference.pdf>`
 
 .. code-block::
-   :lineos:
+   :linenos:
 
-    from estimator.data.datastore import DataStore
-    # Note: DataStores calibrates data unless coeffs and inters specified as None
-    store = DataStore(dataset_number=3, coefficients=None, intercepts=None)
-    trainer = Trainer(
-        store.rots_vicon,
-        store.imu_data,
-        store.ts_imu,
-        store.ts_vicon
-    )
-    coeffs, inters, coef_det = trainer.train_vel()
+   from estimator.data.datastore import DataStore
+   # Note: DataStores calibrates data unless coeffs and inters specified as None
+   store = DataStore(dataset_number=3, coefficients=None, intercepts=None)
+   trainer = Trainer(
+       store.rots_vicon,
+       store.imu_data,
+       store.ts_imu,
+       store.ts_vicon
+   )
+   coeffs, inters, coef_det = trainer.train_vel()
 """
 
 import matplotlib.pyplot as plt

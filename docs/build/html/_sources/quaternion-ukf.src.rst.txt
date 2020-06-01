@@ -1,0 +1,18 @@
+quaternion\-ukf.src package
+===========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quaternion-ukf.src.estimator
+
+Module contents
+---------------
+
+.. automodule:: quaternion-ukf.src
+   :members:
+   :undoc-members:
+   :show-inheritance:
