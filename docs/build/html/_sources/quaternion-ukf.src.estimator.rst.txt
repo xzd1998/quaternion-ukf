@@ -1,0 +1,79 @@
+quaternion\-ukf.src.estimator package
+=====================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quaternion-ukf.src.estimator.data
+   quaternion-ukf.src.estimator.sandbox
+
+Submodules
+----------
+
+quaternion\-ukf.src.estimator.constants module
+----------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.quaternion\_integrator module
+-----------------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.quaternion_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.quaternions module
+------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.quaternions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.quaternionukf module
+--------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.quaternionukf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.roll\_pitch\_calculator module
+------------------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.roll_pitch_calculator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.state\_estimator module
+-----------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.state_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quaternion\-ukf.src.estimator.vector\_integrator module
+-------------------------------------------------------
+
+.. automodule:: quaternion-ukf.src.estimator.vector_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: quaternion-ukf.src.estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:

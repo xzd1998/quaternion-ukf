@@ -1,0 +1,31 @@
+quaternion\-ukf package
+=======================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quaternion-ukf.src
+   quaternion-ukf.test
+
+Submodules
+----------
+
+quaternion\-ukf.myclass module
+------------------------------
+
+.. automodule:: quaternion-ukf.myclass
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: quaternion-ukf
+   :members:
+   :undoc-members:
+   :show-inheritance:
