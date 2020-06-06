@@ -1,0 +1,38 @@
+estimator.sandbox package
+=========================
+
+Submodules
+----------
+
+estimator.sandbox.quaternionukf3 module
+---------------------------------------
+
+.. automodule:: estimator.sandbox.quaternionukf3
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+estimator.sandbox.vectorukf3 module
+-----------------------------------
+
+.. automodule:: estimator.sandbox.vectorukf3
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+estimator.sandbox.vectorukf6 module
+-----------------------------------
+
+.. automodule:: estimator.sandbox.vectorukf6
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: estimator.sandbox
+    :members:
+    :undoc-members:
+    :show-inheritance:

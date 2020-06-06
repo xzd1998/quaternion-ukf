@@ -1,51 +1,51 @@
-estimator.data package
-======================
+estimator.data
+==============
 
 Submodules
 ----------
 
-estimator.data.datamaker module
--------------------------------
+estimator.data.datamaker
+------------------------
 
 .. automodule:: estimator.data.datamaker
    :members:
    :undoc-members:
    :show-inheritance:
 
-estimator.data.datasource module
---------------------------------
+estimator.data.datasource
+-------------------------
 
 .. automodule:: estimator.data.datasource
    :members:
    :undoc-members:
    :show-inheritance:
 
-estimator.data.datastore module
--------------------------------
+estimator.data.datastore
+------------------------
 
 .. automodule:: estimator.data.datastore
    :members:
    :undoc-members:
    :show-inheritance:
 
-estimator.data.trainer module
------------------------------
+estimator.data.trainer
+----------------------
 
 .. automodule:: estimator.data.trainer
    :members:
    :undoc-members:
    :show-inheritance:
 
-estimator.data.trajectoryplanner module
----------------------------------------
+estimator.data.trajectoryplanner
+--------------------------------
 
 .. automodule:: estimator.data.trajectoryplanner
    :members:
    :undoc-members:
    :show-inheritance:
 
-estimator.data.utilities module
--------------------------------
+estimator.data.utilities
+------------------------
 
 .. automodule:: estimator.data.utilities
    :members:
