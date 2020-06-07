@@ -27,12 +27,12 @@ class DataStore(DataSource):
         :param intercepts: biases for imu data
                            may be set to none to leave data uncalibrated
         """
-        if coefficients and coefficients.shape != (STATE_DOF,):
+        if coefficients is not None and coefficients.shape != (STATE_DOF,):
             raise ValueError(
                 "Value coefficients are invalid: expected {} but got {}"
                 .format((STATE_DOF,), coefficients.shape)
             )
-        if intercepts and intercepts.shape != (STATE_DOF,):
+        if intercepts is not None and intercepts.shape != (STATE_DOF,):
             raise ValueError(
                 "Value biases are invalid: expected {} but got {}"
                 .format((STATE_DOF,), intercepts.shape)
@@ -66,7 +66,7 @@ class DataStore(DataSource):
         data_imu[3] = sensor_data[4]
         data_imu[4] = sensor_data[5]
         data_imu[5] = sensor_data[3]
-        if coefficients and intercepts:
+        if coefficients is not None and intercepts is not None:
             data_imu = data_imu * coefficients.reshape(-1, 1) + intercepts.reshape(-1, 1)
 
         super().__init__(ts_vicon, rots_vicon, ts_imu, data_imu[:3], data_imu[3:])

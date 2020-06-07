@@ -2,6 +2,7 @@ import argparse
 
 import numpy as np
 
+from estimator.constants import NUM_AXES
 from estimator.data import utilities
 from estimator.data.datamaker import DataMaker
 from estimator.data.datastore import DataStore
@@ -26,10 +27,10 @@ class QuaternionUkf3(StateEstimator):
         self.kappa = kappa
 
         # Initialize covariance history and state history
-        self.mu = np.zeros((self.n + 1, self.imu_data.shape[-1]))
+        self.mu = np.zeros((NUM_AXES + 1, self.imu_data.shape[-1]))
         self.mu[:, 0] = np.array([1, 0, 0, 0])
-        self.P = np.zeros((self.n, self.n, self.mu.shape[-1]))
-        self.P[..., 0] = np.identity(self.n) * .05
+        self.P = np.zeros((NUM_AXES, NUM_AXES, self.mu.shape[-1]))
+        self.P[..., 0] = np.identity(NUM_AXES) * .05
 
         self._t = 0
         self.Wps = None
@@ -42,10 +43,10 @@ class QuaternionUkf3(StateEstimator):
                 print(content)
 
     def _get_sigma_distances(self, P_last):
-        m = self.n
+        m = NUM_AXES
         S = np.linalg.cholesky(m * (P_last + self.Q))
         W = np.concatenate((S, -S), axis=1) / 10
-        return np.concatenate((np.zeros((self.n, 1)), W), axis=1)
+        return np.concatenate((np.zeros((NUM_AXES, 1)), W), axis=1)
 
     def estimate_state(self):
 
@@ -54,7 +55,7 @@ class QuaternionUkf3(StateEstimator):
         rots = np.zeros((3, 3, self.mu.shape[-1]))
         rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
 
-        self.Wps = np.zeros((3, 2 * self.n + 1, self.num_data))
+        self.Wps = np.zeros((3, 2 * NUM_AXES + 1, self.num_data))
         self.iteration = 0
 
         for i in range(1, self.mu.shape[-1]):
@@ -86,9 +87,10 @@ class QuaternionUkf3(StateEstimator):
 
         # Equation 22: Apply non-linear function A with process noise of zero
         Y = qd.q_multiply(q_sigpt).array
+        self._debug_print(12.15, 0.1, np.round(Y, 2))
 
         # Equations 52-55: Use mean-finding algorithm to satisfy Equation 38
-        Y = Y * np.sign(Y[0])
+        # Y = Y * np.sign(Y[0])
         q1 = Quaternions(Y[:, 0])
         qs = Quaternions(Y)
         q_mean = qs.find_q_mean(q1)
@@ -134,7 +136,7 @@ class QuaternionUkf3(StateEstimator):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(12.15, 0.2, np.round(Wp, 2))
+        # self._debug_print(12.15, 0.1, np.round(Y, 2))
 
         return mu_this, P_this
 
@@ -147,7 +149,7 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     # Noise parameters for UKF
-    R = np.identity(QuaternionUkf3.n) * .1
+    R = np.identity(NUM_AXES) * .1
     # R[5, 5] = .001
     Q = np.copy(R)
 
@@ -156,7 +158,7 @@ if __name__ == "__main__":
         planner = RoundTripPlanner()
         source = DataMaker(planner)
     else:
-        source = DataStore(dataset_number=num, path_to_data="data")
+        source = DataStore(dataset_number=num, path_to_data="estimator/data/")
 
     f = QuaternionUkf3(source, R, Q)
     f.estimate_state()
@@ -169,12 +171,19 @@ if __name__ == "__main__":
             source.angles,
             f.angles
         )
-        # Wps = [f.Wps[:, i, :] for i in range(f.Wps.shape[1])]
-        # utilities.plot_rowwise_data(
-        #     [i for i in range(f.Wps.shape[1])],
-        #     ["x", "y", "z"],
-        #     [source.ts for _ in range(f.Wps.shape[1])],
-        #     *Wps
-        # )
+        Wps = [f.Wps[:, i, :] for i in range(f.Wps.shape[1])]
+        utilities.plot_rowwise_data(
+            [i for i in range(f.Wps.shape[1])],
+            ["x", "y", "z"],
+            [source.ts for _ in range(f.Wps.shape[1])],
+            *Wps
+        )
+        utilities.plot_rowwise_data(
+            ["z-axis"],
+            ["w", "i", "j", "k"],
+            [source.ts for _ in range(f.mu.shape[1])],
+            f.mu
+        )
+        pass
     else:
         StateEstimator.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)

@@ -1,7 +1,13 @@
+"""
+Quaternion UKF
+^^^^^^^^^^^^^^
+"""
+
 import argparse
 
 import numpy as np
 
+from estimator.constants import STATE_DOF, NUM_AXES
 from estimator.data import utilities
 from estimator.data.datamaker import DataMaker
 from estimator.data.datastore import DataStore
@@ -12,7 +18,6 @@ from estimator.quaternions import Quaternions
 
 class QuaternionUkf(StateEstimator):
 
-    state_dof = 6
     g_vector = np.array([0, 0, 1])
 
     def __init__(self, source, R, Q, alpha=1, beta=2, kappa=2):
@@ -26,27 +31,27 @@ class QuaternionUkf(StateEstimator):
         self.kappa = kappa
 
         # Initialize covariance history and state history
-        self.mu = np.zeros((self.n + 1, self.imu_data.shape[-1]))
-        self.mu[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])
-        self.P = np.zeros((self.n, self.n, self.mu.shape[-1]))
-        self.P[..., 0] = np.identity(self.n) * .5
+        self.state = np.zeros((STATE_DOF + 1, self.imu_data.shape[-1]))
+        self.state[:, 0] = np.array([1, 0, 0, 0, 0, 0, 0])
+        self.covariance = np.zeros((STATE_DOF, STATE_DOF, self.state.shape[-1]))
+        self.covariance[..., 0] = np.identity(STATE_DOF) * .01
 
         self._t = 0
 
-        self.free_param = self.alpha ** 2 * (self.n + self.kappa) - self.n
+        self.free_param = self.alpha ** 2 * (STATE_DOF + self.kappa) - STATE_DOF
 
-        w0m = self.free_param / (self.n + self.free_param)
-        qs_to_pad = 2 * self.n * w0m / (1 - w0m) - 1
+        w0m = self.free_param / (STATE_DOF + self.free_param)
+        qs_to_pad = 2 * STATE_DOF * w0m / (1 - w0m) - 1
         if qs_to_pad - np.round(qs_to_pad) < 1e-5:
             self.qs_to_pad = int(np.round(qs_to_pad))
         else:
             raise ValueError("Can't weight with fraction of quaternion to find quaternion mean")
 
         w0c = w0m + 1 - self.alpha ** 2 + self.beta
-        wi = 1 / (2 * (self.n + self.free_param))
+        wi = 1 / (2 * (STATE_DOF + self.free_param))
 
-        self.weights_mu = np.insert(np.ones(2 * self.n) * wi, 0, w0m)
-        self.weights_p = np.insert(np.ones(2 * self.n) * wi, 0, w0c)
+        self.weights_state = np.insert(np.ones(2 * STATE_DOF) * wi, 0, w0m)
+        self.weights_cov = np.insert(np.ones(2 * STATE_DOF) * wi, 0, w0c)
 
     def _debug_print(self, t_min, t_max, *contents):
         if t_min <= self._t <= t_max:
@@ -54,44 +59,47 @@ class QuaternionUkf(StateEstimator):
             for content in contents:
                 print(content)
 
-    def _get_sigma_distances(self, P_last):
-        m = self.n + self.free_param
-        S = np.linalg.cholesky(m * P_last)
-        W = np.concatenate((S, -S), axis=1)
-        return np.concatenate((np.zeros((self.n, 1)), W), axis=1)
+    def _get_sigma_distances(self, cov_last):
+        # m = STATE_DOF
+        # S = np.linalg.cholesky(m * (cov_last + self.Q))
+        # W = np.concatenate((S, -S), axis=1) / 10
+        # return np.concatenate((np.zeros((STATE_DOF, 1)), W), axis=1)
+        cov_muliplier = STATE_DOF
+        positive_offsets = np.linalg.cholesky(cov_muliplier * (cov_last + self.Q))
+        offsets = np.concatenate((positive_offsets, -positive_offsets), axis=1)
+        return np.concatenate((np.zeros((STATE_DOF, 1)), offsets), axis=1)
 
     def _get_custom_distances(self):
-        S = np.identity(self.n) * 3
+        S = np.identity(STATE_DOF) * 3
         S[:3] /= 30
         W = np.concatenate((S, -S), axis=1)
-        return np.concatenate((np.zeros((self.n, 1)), W), axis=1)
+        return np.concatenate((np.zeros((STATE_DOF, 1)), W), axis=1)
 
     def estimate_state(self):
 
         self.imu_data[:3] = self._normalize_data(self.imu_data[:3])
 
-        rots = np.zeros((3, 3, self.mu.shape[-1]))
-        rots[..., 0] = Quaternions(self.mu[:4, 0]).to_rotation_matrix()
+        rots = np.zeros((3, 3, self.state.shape[-1]))
+        rots[..., 0] = Quaternions(self.state[:4, 0]).to_rotation_matrix()
 
-        for i in range(1, self.mu.shape[-1]):
+        for i in range(1, self.state.shape[-1]):
             dt = self.ts_imu[i] - self.ts_imu[i - 1]
             self._t = self.ts_imu[i]
 
-            self.mu[:, i], self.P[..., i] = self._filter_next(
-                self.P[..., i - 1],
-                self.mu[:, i - 1],
+            self.state[:, i], self.covariance[..., i] = self._filter_next(
+                self.covariance[..., i - 1],
+                self.state[:, i - 1],
                 self.imu_data[:, i],
                 dt
             )
-            rots[..., i] = Quaternions(self.mu[:4, i]).to_rotation_matrix()
+            rots[..., i] = Quaternions(self.state[:4, i]).to_rotation_matrix()
 
         self.rots = rots
 
     def _filter_next(self, P_last, mu_last, z_this, dt):
 
-        # W = self._get_sigma_distances(P_last)
-        W = self._get_custom_distances()
-        # self._debug_print(11.7, 12, np.round(P_last, 2), np.round(S, 2))
+        W = self._get_sigma_distances(P_last)
+        # W = self._get_custom_distances()
 
         # Equation 34: Form sigma points based on prior mean and covariance data
         qW = Quaternions.from_vectors(W[:3])
@@ -110,7 +118,7 @@ class QuaternionUkf(StateEstimator):
         Y = np.concatenate((qY.array, w_sigpt))
 
         # Equations 52-55: Use mean-finding algorithm to satisfy Equation 38
-        Y[:4] = Y[:4] * np.sign(Y[0])
+        # Y[:4] = Y[:4] * np.sign(Y[0])
         q1 = Quaternions(Y[:4, 0])
         qs = Quaternions(Y[:4])
         q_mean = qs.find_q_mean(q1)
@@ -119,7 +127,7 @@ class QuaternionUkf(StateEstimator):
         # qs_padded = Quaternions(np.concatenate((extra_q1s, Y[:4]), axis=1))
         # q_mean = qs_padded.find_q_mean(q1)
 
-        w_mean = np.sum(self.weights_mu * Y[4:], axis=1)
+        w_mean = np.sum(self.weights_state * Y[4:], axis=1)
 
         mu_this_est = np.concatenate((q_mean.array.reshape(-1), w_mean.reshape(-1)))
 
@@ -132,14 +140,14 @@ class QuaternionUkf(StateEstimator):
         # Equation 64
         Pk_bar = np.matmul(Wp, Wp.T)
         Pk_bar /= W.shape[1]
-        Pk_bar += self.Q
+        # Pk_bar += self.Q
 
         # Equation 27 and 40
         gs_est = qs.rotate_vector(self.g_vector)
         Z = np.concatenate((gs_est, Y[4:]))
 
         # Equation 48
-        # z_est = np.zeros(self.n)
+        # z_est = np.zeros(STATE_DOF)
         # z_est[3:] = np.mean(Z[3:], axis=1)
         # z_est[:3] = q_mean.rotate_vector(self.g_vector)
         z_est = np.mean(Z, axis=1)
@@ -171,7 +179,7 @@ class QuaternionUkf(StateEstimator):
         # Equation 75:
         P_this = Pk_bar - np.matmul(np.matmul(K, Pvv), K.T)
 
-        self._debug_print(20, 20.1, np.round(K, 3))
+        self._debug_print(0, .1, np.round(P_this, 3))
 
         return mu_this, P_this
 
@@ -184,20 +192,24 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     # Noise parameters for UKF
-    Rr = np.array([.05, .05, .15])
-    Rw = np.array([.05 for _ in range(3)])
-    R = np.identity(QuaternionUkf.n) * np.concatenate((Rr, Rw))
-    Q = np.copy(R)
-    # Q = np.identity(QuaternionUkf.n) * 4.5  # * 2.993 * 2
+    # Rr = np.array([.05, .05, .15])
+    # Rw = np.array([.05 for _ in range(3)])
+    # R = np.identity(STATE_DOF) * np.concatenate((Rr, Rw))
+    # Q = np.copy(R)
+    # Q = np.identity(STATE_DOF) * 4.5574
     # Q[:3, :3] *= 1
-    # Q[3:, 3:] *= 10
+    # Q[3:, 3:] *= 5
+    R = np.identity(STATE_DOF) * .1
+    # R[5, 5] = .001
+    Q = np.copy(R)
+    Q[3:, 3:] *= 10
 
     num = args["datanum"]
     if not num:
         planner = RoundTripPlanner()
         source = DataMaker(planner)
     else:
-        source = DataStore(dataset_number=num, path_to_data="data")
+        source = DataStore(dataset_number=num, path_to_data="estimator/data/")
 
     f = QuaternionUkf(source, R, Q)
     f.estimate_state()
