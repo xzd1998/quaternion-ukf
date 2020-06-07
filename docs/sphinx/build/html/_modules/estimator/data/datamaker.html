@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>estimator.data.datamaker &mdash; QuaternionUkf 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> QuaternionUkf
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">estimator</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">QuaternionUkf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>estimator.data.datamaker</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for estimator.data.datamaker</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">estimator.data.datasource</span> <span class="k">import</span> <span class="n">DataSource</span>
+<span class="kn">from</span> <span class="nn">estimator.data</span> <span class="k">import</span> <span class="n">utilities</span>
+<span class="kn">from</span> <span class="nn">estimator.data.trajectoryplanner</span> <span class="k">import</span> <span class="n">SimplePlanner</span>
+
+
+<div class="viewcode-block" id="DataMaker"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datamaker.DataMaker">[docs]</a><span class="k">class</span> <span class="nc">DataMaker</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates test data from a pre-planned trajectory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">planner</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param planner: defines what the angular acceleration is at each timestep</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">planner</span><span class="o">.</span><span class="n">duration</span> <span class="o">&lt;</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Total time can&#39;t be less than the increment&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">angs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">vels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">accs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+            <span class="n">vels</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">accs</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">*</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">angs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">angs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">vels</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vels</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">*</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="n">planner</span><span class="o">.</span><span class="n">bounds</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">bound</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">calculator</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">get_calculator</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+                    <span class="n">accs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculator</span><span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">integrate</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span> <span class="o">=</span> <span class="n">angs</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">vel_data</span> <span class="o">=</span> <span class="n">vels</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">vel_data</span> <span class="o">+=</span> <span class="n">planner</span><span class="o">.</span><span class="n">drift</span>
+
+        <span class="c1"># Rotation of the robot frame with respect to the global frame</span>
+        <span class="n">rots_vicon</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">vectors_to_rots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">)</span>
+        <span class="n">acc_data</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">rots_to_accs</span><span class="p">(</span><span class="n">rots_vicon</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">noise</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">rots_vicon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">acc_data</span><span class="p">,</span> <span class="n">vel_data</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">planner</span> <span class="o">=</span> <span class="n">SimplePlanner</span><span class="p">()</span>
+    <span class="n">maker</span> <span class="o">=</span> <span class="n">DataMaker</span><span class="p">(</span><span class="n">planner</span><span class="p">)</span>
+    <span class="n">ang_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;roll&quot;</span><span class="p">,</span> <span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;yaw&quot;</span><span class="p">]</span>
+    <span class="n">vel_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;wx&quot;</span><span class="p">,</span> <span class="s2">&quot;wy&quot;</span><span class="p">,</span> <span class="s2">&quot;wz&quot;</span><span class="p">]</span>
+    <span class="n">utilities</span><span class="o">.</span><span class="n">plot_rowwise_data</span><span class="p">([</span><span class="s2">&quot;z-axis&quot;</span><span class="p">],</span> <span class="n">ang_labels</span><span class="p">,</span> <span class="p">[</span><span class="n">maker</span><span class="o">.</span><span class="n">ts</span><span class="p">],</span> <span class="n">maker</span><span class="o">.</span><span class="n">angles</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Matt Lisle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

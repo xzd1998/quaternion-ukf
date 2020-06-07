@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>estimator.quaternionukf &mdash; QuaternionUkf 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> QuaternionUkf
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">estimator</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">QuaternionUkf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>estimator.quaternionukf</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for estimator.quaternionukf</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">estimator.data</span> <span class="k">import</span> <span class="n">utilities</span>
+<span class="kn">from</span> <span class="nn">estimator.data.datamaker</span> <span class="k">import</span> <span class="n">DataMaker</span>
+<span class="kn">from</span> <span class="nn">estimator.data.datastore</span> <span class="k">import</span> <span class="n">DataStore</span>
+<span class="kn">from</span> <span class="nn">estimator.data.trajectoryplanner</span> <span class="k">import</span> <span class="n">RoundTripPlanner</span>
+<span class="kn">from</span> <span class="nn">estimator.state_estimator</span> <span class="k">import</span> <span class="n">StateEstimator</span>
+<span class="kn">from</span> <span class="nn">estimator.quaternions</span> <span class="k">import</span> <span class="n">Quaternions</span>
+
+
+<div class="viewcode-block" id="QuaternionUkf"><a class="viewcode-back" href="../../estimator.html#estimator.quaternionukf.QuaternionUkf">[docs]</a><span class="k">class</span> <span class="nc">QuaternionUkf</span><span class="p">(</span><span class="n">StateEstimator</span><span class="p">):</span>
+
+    <span class="n">state_dof</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">g_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="n">R</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span> <span class="o">=</span> <span class="n">kappa</span>
+
+        <span class="c1"># Initialize covariance history and state history</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imu_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">5</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">free_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span>
+
+        <span class="n">w0m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">free_param</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">free_param</span><span class="p">)</span>
+        <span class="n">qs_to_pad</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">w0m</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">w0m</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">qs_to_pad</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">qs_to_pad</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-5</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qs_to_pad</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">qs_to_pad</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t weight with fraction of quaternion to find quaternion mean&quot;</span><span class="p">)</span>
+
+        <span class="n">w0c</span> <span class="o">=</span> <span class="n">w0m</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta</span>
+        <span class="n">wi</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">free_param</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights_mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">wi</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w0m</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">wi</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w0c</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_debug_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_min</span><span class="p">,</span> <span class="n">t_max</span><span class="p">,</span> <span class="o">*</span><span class="n">contents</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">t_min</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">&lt;=</span> <span class="n">t_max</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Time </span><span class="si">{}</span><span class="s2"> seconds&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_t</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_sigma_distances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P_last</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">free_param</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">P_last</span><span class="p">)</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">S</span><span class="p">,</span> <span class="o">-</span><span class="n">S</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">W</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_custom_distances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
+        <span class="n">S</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">/=</span> <span class="mi">30</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">S</span><span class="p">,</span> <span class="o">-</span><span class="n">S</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">W</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QuaternionUkf.estimate_state"><a class="viewcode-back" href="../../estimator.html#estimator.quaternionukf.QuaternionUkf.estimate_state">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">imu_data</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imu_data</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+
+        <span class="n">rots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">rots</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">to_rotation_matrix</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_next</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">imu_data</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span>
+                <span class="n">dt</span>
+            <span class="p">)</span>
+            <span class="n">rots</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[:</span><span class="mi">4</span><span class="p">,</span> <span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">to_rotation_matrix</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rots</span> <span class="o">=</span> <span class="n">rots</span></div>
+
+    <span class="k">def</span> <span class="nf">_filter_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P_last</span><span class="p">,</span> <span class="n">mu_last</span><span class="p">,</span> <span class="n">z_this</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+
+        <span class="c1"># W = self._get_sigma_distances(P_last)</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_custom_distances</span><span class="p">()</span>
+        <span class="c1"># self._debug_print(11.7, 12, np.round(P_last, 2), np.round(S, 2))</span>
+
+        <span class="c1"># Equation 34: Form sigma points based on prior mean and covariance data</span>
+        <span class="n">qW</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">from_vectors</span><span class="p">(</span><span class="n">W</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">q_last</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">mu_last</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">q_sigpt</span> <span class="o">=</span> <span class="n">qW</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">q_last</span><span class="p">)</span>
+
+        <span class="n">wW</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+        <span class="n">w_last</span> <span class="o">=</span> <span class="n">mu_last</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+        <span class="n">w_sigpt</span> <span class="o">=</span> <span class="n">w_last</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">wW</span>
+
+        <span class="c1"># Equations 9-11: form q_delta</span>
+        <span class="n">qd</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">from_vectors</span><span class="p">(</span><span class="n">w_sigpt</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
+
+        <span class="c1"># Equation 22: Apply non-linear function A with process noise of zero</span>
+        <span class="n">qY</span> <span class="o">=</span> <span class="n">qd</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">q_sigpt</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">qY</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">w_sigpt</span><span class="p">))</span>
+
+        <span class="c1"># Equations 52-55: Use mean-finding algorithm to satisfy Equation 38</span>
+        <span class="n">Y</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">q1</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">Y</span><span class="p">[:</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">Y</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">q_mean</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">find_q_mean</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+
+        <span class="c1"># extra_q1s = np.matmul(q1.array.reshape(-1, 1), np.ones((1, self.qs_to_pad)))</span>
+        <span class="c1"># qs_padded = Quaternions(np.concatenate((extra_q1s, Y[:4]), axis=1))</span>
+        <span class="c1"># q_mean = qs_padded.find_q_mean(q1)</span>
+
+        <span class="n">w_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_mu</span> <span class="o">*</span> <span class="n">Y</span><span class="p">[</span><span class="mi">4</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">mu_this_est</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">q_mean</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">w_mean</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+
+        <span class="c1"># Equations 65-67: Transform Y into W&#39;, notated as Wp for prime</span>
+        <span class="c1"># rWp = utilities.normalize_vectors(q_mean.inverse().q_multiply(qs).to_vectors())</span>
+        <span class="n">rWp</span> <span class="o">=</span> <span class="n">q_mean</span><span class="o">.</span><span class="n">inverse</span><span class="p">()</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">qs</span><span class="p">)</span><span class="o">.</span><span class="n">to_vectors</span><span class="p">()</span>
+        <span class="n">wWp</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span> <span class="o">-</span> <span class="n">w_mean</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Wp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">rWp</span><span class="p">,</span> <span class="n">wWp</span><span class="p">))</span>
+
+        <span class="c1"># Equation 64</span>
+        <span class="n">Pk_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Wp</span><span class="p">,</span> <span class="n">Wp</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">Pk_bar</span> <span class="o">/=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Pk_bar</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span>
+
+        <span class="c1"># Equation 27 and 40</span>
+        <span class="n">gs_est</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">rotate_vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">g_vector</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">gs_est</span><span class="p">,</span> <span class="n">Y</span><span class="p">[</span><span class="mi">4</span><span class="p">:]))</span>
+
+        <span class="c1"># Equation 48</span>
+        <span class="c1"># z_est = np.zeros(self.n)</span>
+        <span class="c1"># z_est[3:] = np.mean(Z[3:], axis=1)</span>
+        <span class="c1"># z_est[:3] = q_mean.rotate_vector(self.g_vector)</span>
+        <span class="n">z_est</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Equation 68</span>
+        <span class="c1"># Equation 70</span>
+        <span class="n">z_diff</span> <span class="o">=</span> <span class="n">Z</span> <span class="o">-</span> <span class="n">z_est</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">Pzz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">z_diff</span><span class="p">,</span> <span class="n">z_diff</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">Pxz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Wp</span><span class="p">,</span> <span class="n">z_diff</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">Pzz</span> <span class="o">/=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Pxz</span> <span class="o">/=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Equation 69</span>
+        <span class="n">Pvv</span> <span class="o">=</span> <span class="n">Pzz</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span>
+
+        <span class="c1"># Equation 72</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Pxz</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">Pvv</span><span class="p">))</span>
+
+        <span class="c1"># Equation 74</span>
+        <span class="n">correction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="p">(</span><span class="n">z_this</span> <span class="o">-</span> <span class="n">z_est</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">q_correction</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="o">.</span><span class="n">from_vectors</span><span class="p">(</span><span class="n">correction</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">w_correction</span> <span class="o">=</span> <span class="n">correction</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+
+        <span class="c1"># Equation 46</span>
+        <span class="n">mu_this</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mu_this_est</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">mu_this</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">Quaternions</span><span class="p">(</span><span class="n">mu_this_est</span><span class="p">[:</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">q_multiply</span><span class="p">(</span><span class="n">q_correction</span><span class="p">)</span><span class="o">.</span><span class="n">array</span>  <span class="c1">#</span>
+        <span class="n">mu_this</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span> <span class="o">=</span> <span class="n">mu_this_est</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span> <span class="o">+</span> <span class="n">w_correction</span>
+
+        <span class="c1"># Equation 75:</span>
+        <span class="n">P_this</span> <span class="o">=</span> <span class="n">Pk_bar</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">Pvv</span><span class="p">),</span> <span class="n">K</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_debug_print</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mf">20.1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">mu_this</span><span class="p">,</span> <span class="n">P_this</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-D&quot;</span><span class="p">,</span> <span class="s2">&quot;--datanum&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of data file (1 to 3 inclusive)&quot;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">())</span>
+
+    <span class="c1"># Noise parameters for UKF</span>
+    <span class="n">Rr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">.</span><span class="mi">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">05</span><span class="p">,</span> <span class="o">.</span><span class="mi">15</span><span class="p">])</span>
+    <span class="n">Rw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">.</span><span class="mi">05</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">QuaternionUkf</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Rr</span><span class="p">,</span> <span class="n">Rw</span><span class="p">))</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+    <span class="c1"># Q = np.identity(QuaternionUkf.n) * 4.5  # * 2.993 * 2</span>
+    <span class="c1"># Q[:3, :3] *= 1</span>
+    <span class="c1"># Q[3:, 3:] *= 10</span>
+
+    <span class="n">num</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;datanum&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">num</span><span class="p">:</span>
+        <span class="n">planner</span> <span class="o">=</span> <span class="n">RoundTripPlanner</span><span class="p">()</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">DataMaker</span><span class="p">(</span><span class="n">planner</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">DataStore</span><span class="p">(</span><span class="n">dataset_number</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">path_to_data</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="n">QuaternionUkf</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">estimate_state</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">free_param</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">num</span><span class="p">:</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_rowwise_data</span><span class="p">([</span><span class="s2">&quot;z-axis&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">],</span> <span class="p">[</span><span class="n">source</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">ts</span><span class="p">],</span> <span class="n">source</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">angles</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">StateEstimator</span><span class="o">.</span><span class="n">plot_comparison</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">rots</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">rots_vicon</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">ts_vicon</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Matt Lisle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

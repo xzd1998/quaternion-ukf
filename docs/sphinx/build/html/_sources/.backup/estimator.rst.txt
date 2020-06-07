@@ -1,0 +1,79 @@
+estimator package
+=================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   estimator.data
+   estimator.sandbox
+
+Submodules
+----------
+
+estimator.constants module
+--------------------------
+
+.. automodule:: estimator.constants
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+estimator.quaternion\_integrator module
+---------------------------------------
+
+.. automodule:: estimator.quaternion_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+estimator.quaternions module
+----------------------------
+
+.. automodule:: estimator.quaternions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+estimator.quaternionukf module
+------------------------------
+
+.. automodule:: estimator.quaternionukf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+estimator.roll\_pitch\_calculator module
+----------------------------------------
+
+.. automodule:: estimator.roll_pitch_calculator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+estimator.state\_estimator module
+---------------------------------
+
+.. automodule:: estimator.state_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+estimator.vector\_integrator module
+-----------------------------------
+
+.. automodule:: estimator.vector_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
