@@ -1,5 +1,6 @@
 """
 Trainer
+^^^^^^^
 
 Calibrates IMU data using linear regression after transforming ground-truth data,
 which comes in the form of rotation matrices. The rotation matrix data is
@@ -8,11 +9,21 @@ to be able to calibrate the accelerometer and gyroscope, respectively.
 
 The trainer has two static members that are the results of training on the first
 three datasets:
-* `IMU_COEFFICIENTS`: ith coeffient multiplies the ith row of `imu_data`
-* `IMU_INTERCEPTS`: ith intercept is added to the ith row of `imu_data`
 
-The convention above is slightly different from that listed in the IMU reference:
-:doc:`IMU reference <../../../docs/IMU_reference.pdf>`
+* :code:`IMU_COEFFICIENTS`: ith coeffient multiplies the ith row of `imu_data`
+* :code:`IMU_INTERCEPTS`: ith intercept is added to the ith row of `imu_data`
+
+The convention above is slightly different from that listed in the IMU reference
+`here <https://github.com/mattlisle/quaternion-ukf/blob/master/docs/IMU_reference.pdf>`_,
+in that the formula they list is :code:`value = (raw - bias) * scale_factor` whereas
+the parameters learned in :code:`Trainer` correspond to this formula:
+:code:`value = raw * scale_factor + bias`
+
+The example below uses the 3rd dataset (imuRaw3.mat and viconRot3.mat) to calculate
+the calibrated velocity data from the IMU. Note that when :code:`DataStore` is used
+in practice, :code:`Trainer`'s :code:`IMU_COEFFICIENTS` and :code:`IMU_INTERCEPTS`
+are used to automatically calibrate the data. That way, :code:`store.vel_data` has
+already been calibrated.
 
 .. code-block::
    :linenos:
@@ -26,7 +37,8 @@ The convention above is slightly different from that listed in the IMU reference
        store.ts_imu,
        store.ts_vicon
    )
-   coeffs, inters, coef_det = trainer.train_vel()
+   coeffs, biases, coef_determination = trainer.train_vel()
+   calibrated_vel_data = store.vel_data * coeffs.reshape(-1, 1) + biases.reshape(-1, 1)
 """
 
 import matplotlib.pyplot as plt
@@ -39,7 +51,14 @@ from estimator.constants import NUM_AXES
 
 
 class Trainer:
-    """Interface for training a linear regression model for accelerometer and gyro data"""
+    """
+    Interface for training a linear regression model for accelerometer and gyro data
+    with two static members defined such that:
+
+    .. code-block::
+
+       calibrated = raw * IMU_COEFFICIENTS.reshape(-1, 1) + IMU_INTERCEPTS.reshape(-1, 1)
+    """
 
     # Results from combined training on first three datasets
     IMU_COEFFICIENTS = np.array([-0.0936, -0.0944, 0.0945, 0.0155, 0.0158, 0.0161])
@@ -63,7 +82,11 @@ class Trainer:
             Trainer.clip_data(rots, imu_data, ts_imu, ts_vicon)
 
     def train_acc(self):
-        """Solves for coefficients for accelerometer data"""
+        """
+        Solves for coefficients for accelerometer data
+
+        :return: accelerometer coefficients, biases, coefficients of determination
+        """
 
         coefficients = np.zeros(NUM_AXES)
         intercepts = np.zeros(NUM_AXES)
@@ -91,7 +114,7 @@ class Trainer:
             plt.scatter(measured[i].reshape(-1), truth[i].reshape(-1))
             plt.show()
 
-        coef_determination = np.identity(NUM_AXES) * np.var(measured - truth, axis=2)
+        coef_determination = np.var(measured - truth, axis=2)
 
         for i in range(3):
             plt.plot(self.t_vicon.reshape(-1), measured[i].reshape(-1))
@@ -101,7 +124,11 @@ class Trainer:
         return coefficients, intercepts, coef_determination
 
     def train_vel(self):
-        """Solves for coefficients for gyro data"""
+        """
+        Solves for coefficients for accelerometer data
+
+        :return: gyro coefficients, biases, coefficients of determination
+        """
 
         coefficients = np.zeros(NUM_AXES)
         intercepts = np.zeros(NUM_AXES)
@@ -120,7 +147,7 @@ class Trainer:
         measured = np.array([
             [coefficients[i] * imu_data[i + NUM_AXES] + intercepts[i]] for i in range(3)
         ])
-        coef_determination = np.identity(3) * np.var(measured - vels, axis=2)
+        coef_determination = np.var(measured - vels, axis=2)
 
         measured = measured.reshape(NUM_AXES, -1)
         for i in range(NUM_AXES):
@@ -132,39 +159,32 @@ class Trainer:
         return coefficients, intercepts, coef_determination
 
     @staticmethod
-    def clip_data(data_to_clip, reference_data, ts_imu, ts_vicon):
+    def clip_data(data_to_clip, reference_data, ts_to_clip, ts_reference):
         """
         Lines up both time vectors and interpolates the data to clip to the raw data
-        Because there's no guarantee that the two time vectors are the same
+        because there's no guarantee that the two time vectors are the same
+
+        :param data_to_clip: for example, IMU data
+        :param reference_data: data to which the data to clip will be interpolated
+        :param ts_to_clip: time vector associated with data to clip
+        :param ts_reference: time vector associated with reference data
+        :return: all of the above parameters after clipping/interpolation
         """
 
-        if ts_imu[0] < ts_vicon[0]:
-            ts_vicon -= ts_imu[0]
-            ts_imu -= ts_imu[0]
-            indexer = ts_imu >= ts_vicon[0]
-            ts_imu = ts_imu[indexer]
+        if ts_to_clip[0] < ts_reference[0]:
+            ts_reference -= ts_to_clip[0]
+            ts_to_clip -= ts_to_clip[0]
+            indexer = ts_to_clip >= ts_reference[0]
+            ts_to_clip = ts_to_clip[indexer]
             reference_data = reference_data[..., indexer]
 
-        if ts_imu[-1] > ts_vicon[-1]:
-            indexer = ts_imu <= ts_vicon[-1]
-            ts_imu = ts_imu[indexer]
+        if ts_to_clip[-1] > ts_reference[-1]:
+            indexer = ts_to_clip <= ts_reference[-1]
+            ts_to_clip = ts_to_clip[indexer]
             reference_data = reference_data[..., indexer]
 
-        interp_func = interp1d(ts_vicon, data_to_clip)
-        clipped = interp_func(ts_imu)
-        ts_vicon = ts_imu
+        interp_func = interp1d(ts_reference, data_to_clip)
+        clipped = interp_func(ts_to_clip)
+        ts_reference = ts_to_clip
 
-        return clipped, reference_data, ts_imu, ts_vicon
-
-
-if __name__ == "__main__":
-    from estimator.data.datastore import DataStore
-
-    store = DataStore(dataset_number=3, coefficients=None, intercepts=None)
-
-    trainer = Trainer(store.rots_vicon, store.imu_data, store.ts_imu, store.ts_vicon)
-
-    coeffs, inters, coef_det = trainer.train_vel()
-    print(coeffs)
-    print(inters)
-    print(coef_det)
+        return clipped, reference_data, ts_to_clip, ts_reference
