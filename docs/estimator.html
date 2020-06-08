@@ -97,7 +97,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-estimator.constants">estimator.constants</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-estimator.quaternion_integrator">estimator.quaternion_integrator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-estimator.quaternions">estimator.quaternions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-estimator.quaternionukf">estimator.quaternionukf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-estimator.quaternionukf">estimator.quaternionukf</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#quaternion-ukf">Quaternion UKF</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-estimator.roll_pitch_calculator">estimator.roll_pitch_calculator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-estimator.state_estimator">estimator.state_estimator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-estimator.vector_integrator">estimator.vector_integrator</a></li>
@@ -183,7 +186,10 @@
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.datamaker">estimator.data.datamaker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.datasource">estimator.data.datasource</a></li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.datastore">estimator.data.datastore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.trainer">estimator.data.trainer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.trainer">estimator.data.trainer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="estimator.data.html#trainer">Trainer</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.trajectoryplanner">estimator.data.trajectoryplanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.utilities">estimator.data.utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data">Module contents</a></li>
@@ -219,7 +225,7 @@
 <dt id="estimator.quaternion_integrator.QuaternionIntegrator.estimate_state">
 <code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/quaternion_integrator.html#QuaternionIntegrator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.quaternion_integrator.QuaternionIntegrator.estimate_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses data provided by the source to estimate the state history of the filter
-After calling this function, all properties of this class must not be null</p>
+After calling this function, the state and rotation history will be defined</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -285,6 +291,11 @@ After calling this function, all properties of this class must not be null</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt id="estimator.quaternions.Quaternions.length">
+<em class="property">property </em><code class="sig-name descname">length</code><a class="headerlink" href="#estimator.quaternions.Quaternions.length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt id="estimator.quaternions.Quaternions.ndim">
 <code class="sig-name descname">ndim</code><em class="property"> = 4</em><a class="headerlink" href="#estimator.quaternions.Quaternions.ndim" title="Permalink to this definition">¶</a></dt>
@@ -331,29 +342,100 @@ After calling this function, all properties of this class must not be null</p>
 </div>
 <div class="section" id="module-estimator.quaternionukf">
 <span id="estimator-quaternionukf"></span><h2>estimator.quaternionukf<a class="headerlink" href="#module-estimator.quaternionukf" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quaternion-ukf">
+<h3>Quaternion UKF<a class="headerlink" href="#quaternion-ukf" title="Permalink to this headline">¶</a></h3>
+<p>This implementation of a UKF for tracking orientation of a drone with gyro and accelerometer
+data follows closely that described in the paper “A Quaternion-based Unscented Kalman Filter for
+Orientation Tracking” by Edgar Kraft.</p>
+<p>This project was completed as part of ESE 650: Learning in Robotics at the University of
+Pennsylvania, though it has been tweaked, and additional infrastructure has been built since then.</p>
+<p>Most notably, despite that the initial implementation passed all tests for that project, I am
+certain that parts of it were incorrect. Comparing the results, I’m fairly sure that the updated
+version would not have passed the TAs’ unit tests despite being correct, or at least better.</p>
+<p>I think this because my initial version was highly sensitive to my process model noise, which
+I tuned to the thousandth decimal place to be able to pass all tests. That’s indicative that
+version was flawed.</p>
+<p>The updated version has fixed the instabilities that existed at pi and -pi, and it’s no longer
+so sensitive to how I choose to model the process noise. That being said, I’m always on the
+lookout for ways the updated implementation can improve.</p>
+<p>Here’s an example of how this can be used with some toy data generated by the some of the
+new infrastructure I’ve built to test this new implementation:</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">estimator.constants</span> <span class="k">import</span> <span class="n">STATE_DOF</span>
+
+<span class="c1"># Set measurement and process model noise to something reasonable</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">STATE_DOF</span><span class="p">)</span> <span class="o">*</span> <span class="o">.</span><span class="mi">1</span>
+<span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+
+<span class="c1"># Build some toy data with rudimentary model of noise and drift in the sensor data</span>
+<span class="n">planner</span> <span class="o">=</span> <span class="n">RoundTripPlanner</span><span class="p">()</span>
+<span class="n">data_source</span> <span class="o">=</span> <span class="n">DataMaker</span><span class="p">(</span><span class="n">planner</span><span class="p">)</span>
+
+<span class="c1"># Filter the data and plot the comparison</span>
+<span class="n">estimator</span> <span class="o">=</span> <span class="n">QuaternionUkf</span><span class="p">(</span><span class="n">data_source</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span>
+<span class="n">estimator</span><span class="o">.</span><span class="n">estimate_state</span><span class="p">()</span>
+<span class="n">estimator</span><span class="o">.</span><span class="n">plot_comparison</span><span class="p">(</span>
+    <span class="n">estimator</span><span class="o">.</span><span class="n">rots</span><span class="p">,</span>
+    <span class="n">estimator</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">,</span>
+    <span class="n">data_source</span><span class="o">.</span><span class="n">rots_vicon</span><span class="p">,</span>
+    <span class="n">data_source</span><span class="o">.</span><span class="n">ts_vicon</span>
+<span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
 <dl class="py class">
 <dt id="estimator.quaternionukf.QuaternionUkf">
-<em class="property">class </em><code class="sig-name descname">QuaternionUkf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">R</span></em>, <em class="sig-param"><span class="n">Q</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">kappa</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/quaternionukf.html#QuaternionUkf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.quaternionukf.QuaternionUkf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">QuaternionUkf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">measurement_noise</span></em>, <em class="sig-param"><span class="n">process_noise</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/quaternionukf.html#QuaternionUkf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.quaternionukf.QuaternionUkf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.state_estimator.StateEstimator" title="estimator.state_estimator.StateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.state_estimator.StateEstimator</span></code></a></p>
+<p>Estimates rotational position/velocity state of robot from time series data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#estimator.quaternionukf.QuaternionUkf.G_VECTOR" title="estimator.quaternionukf.QuaternionUkf.G_VECTOR"><strong>G_VECTOR</strong></a> – normalized 3D gravity vector</p></li>
+<li><p><strong>measurement_noise</strong> – estimated noise in a given sensor measurement</p></li>
+<li><p><strong>process_noise</strong> – estimated noise involved in a given step of the process model</p></li>
+<li><p><strong>state</strong> – (7, <a class="reference internal" href="#estimator.state_estimator.StateEstimator.num_data" title="estimator.state_estimator.StateEstimator.num_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">num_data()</span></code></a>)
+numpy array of state vectors the first 4 elements of which are a
+quaternion and the latter three an angular velocity vector</p></li>
+<li><p><strong>covariance</strong> – (6, 6, <a class="reference internal" href="#estimator.state_estimator.StateEstimator.num_data" title="estimator.state_estimator.StateEstimator.num_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">num_data()</span></code></a>)
+numpy array of the estimated covariance of each degree of freedom in
+the state</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="estimator.quaternionukf.QuaternionUkf.G_VECTOR">
+<code class="sig-name descname">G_VECTOR</code><em class="property"> = array([0, 0, 1])</em><a class="headerlink" href="#estimator.quaternionukf.QuaternionUkf.G_VECTOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="estimator.quaternionukf.QuaternionUkf.estimate_state">
 <code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/quaternionukf.html#QuaternionUkf.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.quaternionukf.QuaternionUkf.estimate_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses data provided by the source to estimate the state history of the filter
-After calling this function, all properties of this class must not be null</p>
+After calling this function, the state and rotation history will be defined</p>
 </dd></dl>
-
-<dl class="py attribute">
-<dt id="estimator.quaternionukf.QuaternionUkf.g_vector">
-<code class="sig-name descname">g_vector</code><em class="property"> = array([0, 0, 1])</em><a class="headerlink" href="#estimator.quaternionukf.QuaternionUkf.g_vector" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="estimator.quaternionukf.QuaternionUkf.state_dof">
-<code class="sig-name descname">state_dof</code><em class="property"> = 6</em><a class="headerlink" href="#estimator.quaternionukf.QuaternionUkf.state_dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
+</div>
 </div>
 <div class="section" id="module-estimator.roll_pitch_calculator">
 <span id="estimator-roll-pitch-calculator"></span><h2>estimator.roll_pitch_calculator<a class="headerlink" href="#module-estimator.roll_pitch_calculator" title="Permalink to this headline">¶</a></h2>
@@ -370,7 +452,7 @@ After calling this function, all properties of this class must not be null</p>
 <dt id="estimator.roll_pitch_calculator.RollPitchCalculator.estimate_state">
 <code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/roll_pitch_calculator.html#RollPitchCalculator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.roll_pitch_calculator.RollPitchCalculator.estimate_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses data provided by the source to estimate the state history of the filter
-After calling this function, all properties of this class must not be null</p>
+After calling this function, the state and rotation history will be defined</p>
 </dd></dl>
 
 </dd></dl>
@@ -403,7 +485,7 @@ three or six degrees of freedom depending on the implementation.</p>
 <dt id="estimator.state_estimator.StateEstimator.estimate_state">
 <em class="property">abstract </em><code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/state_estimator.html#StateEstimator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.state_estimator.StateEstimator.estimate_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses data provided by the source to estimate the state history of the filter
-After calling this function, all properties of this class must not be null</p>
+After calling this function, the state and rotation history will be defined</p>
 </dd></dl>
 
 <dl class="py method">
@@ -455,7 +537,7 @@ After calling this function, all properties of this class must not be null</p>
 <dt id="estimator.vector_integrator.VectorIntegrator.estimate_state">
 <code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/vector_integrator.html#VectorIntegrator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.vector_integrator.VectorIntegrator.estimate_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses data provided by the source to estimate the state history of the filter
-After calling this function, all properties of this class must not be null</p>
+After calling this function, the state and rotation history will be defined</p>
 </dd></dl>
 
 </dd></dl>

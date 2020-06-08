@@ -150,6 +150,7 @@
   <h1>Source code for estimator.data.trainer</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Trainer</span>
+<span class="sd">^^^^^^^</span>
 
 <span class="sd">Calibrates IMU data using linear regression after transforming ground-truth data,</span>
 <span class="sd">which comes in the form of rotation matrices. The rotation matrix data is</span>
@@ -158,17 +159,27 @@
 
 <span class="sd">The trainer has two static members that are the results of training on the first</span>
 <span class="sd">three datasets:</span>
-<span class="sd">* `IMU_COEFFICIENTS`: ith coeffient multiplies the ith row of `imu_data`</span>
-<span class="sd">* `IMU_INTERCEPTS`: ith intercept is added to the ith row of `imu_data`</span>
 
-<span class="sd">The convention above is slightly different from that listed in the IMU reference:</span>
-<span class="sd">:doc:`IMU reference &lt;../../../docs/IMU_reference.pdf&gt;`</span>
+<span class="sd">* :code:`IMU_COEFFICIENTS`: ith coeffient multiplies the ith row of `imu_data`</span>
+<span class="sd">* :code:`IMU_INTERCEPTS`: ith intercept is added to the ith row of `imu_data`</span>
+
+<span class="sd">The convention above is slightly different from that listed in the IMU reference</span>
+<span class="sd">`here &lt;https://github.com/mattlisle/quaternion-ukf/blob/master/docs/IMU_reference.pdf&gt;`_,</span>
+<span class="sd">in that the formula they list is :code:`value = (raw - bias) * scale_factor` whereas</span>
+<span class="sd">the parameters learned in :code:`Trainer` correspond to this formula:</span>
+<span class="sd">:code:`value = raw * scale_factor + bias`</span>
+
+<span class="sd">The example below uses the 3rd dataset (imuRaw3.mat and viconRot3.mat) to calculate</span>
+<span class="sd">the calibrated velocity data from the IMU. Note that when :code:`DataStore` is used</span>
+<span class="sd">in practice, :code:`Trainer`&#39;s :code:`IMU_COEFFICIENTS` and :code:`IMU_INTERCEPTS`</span>
+<span class="sd">are used to automatically calibrate the data. That way, :code:`store.vel_data` has</span>
+<span class="sd">already been calibrated.</span>
 
 <span class="sd">.. code-block::</span>
 <span class="sd">   :linenos:</span>
 
 <span class="sd">   from estimator.data.datastore import DataStore</span>
-<span class="sd">   # Note: DataStores calibrates data unless coeffs and inters specified as None</span>
+<span class="sd">   # Note: DataStore calibrates data by default unless coeffs and inters specified as None</span>
 <span class="sd">   store = DataStore(dataset_number=3, coefficients=None, intercepts=None)</span>
 <span class="sd">   trainer = Trainer(</span>
 <span class="sd">       store.rots_vicon,</span>
@@ -176,7 +187,8 @@
 <span class="sd">       store.ts_imu,</span>
 <span class="sd">       store.ts_vicon</span>
 <span class="sd">   )</span>
-<span class="sd">   coeffs, inters, coef_det = trainer.train_vel()</span>
+<span class="sd">   coeffs, biases, coef_determination = trainer.train_vel()</span>
+<span class="sd">   calibrated_vel_data = store.vel_data * coeffs.reshape(-1, 1) + biases.reshape(-1, 1)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -189,8 +201,17 @@
 
 
 <div class="viewcode-block" id="Trainer"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer">[docs]</a><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Interface for training a linear regression model for accelerometer and gyro data&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface for training a linear regression model for accelerometer and gyro data</span>
+<span class="sd">    with two static members defined such that:</span>
 
+<span class="sd">    .. code-block::</span>
+
+<span class="sd">       calibrated = raw * IMU_COEFFICIENTS.reshape(-1, 1) + IMU_INTERCEPTS.reshape(-1, 1)</span>
+
+<span class="sd">    :cvar IMU_COEFFICIENTS: ith coeffient multiplies the ith row of `imu_data`</span>
+<span class="sd">    :cvar IMU_INTERCEPTS: ith coeffient is added to the ith row of `imu_data`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Results from combined training on first three datasets</span>
     <span class="n">IMU_COEFFICIENTS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.0936</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0944</span><span class="p">,</span> <span class="mf">0.0945</span><span class="p">,</span> <span class="mf">0.0155</span><span class="p">,</span> <span class="mf">0.0158</span><span class="p">,</span> <span class="mf">0.0161</span><span class="p">])</span>
     <span class="n">IMU_INTERCEPTS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">47.9</span><span class="p">,</span> <span class="mf">47.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">47.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.75</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.75</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.95</span><span class="p">])</span>
@@ -213,7 +234,11 @@
             <span class="n">Trainer</span><span class="o">.</span><span class="n">clip_data</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">imu_data</span><span class="p">,</span> <span class="n">ts_imu</span><span class="p">,</span> <span class="n">ts_vicon</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Trainer.train_acc"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.train_acc">[docs]</a>    <span class="k">def</span> <span class="nf">train_acc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Solves for coefficients for accelerometer data&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solves for coefficients for accelerometer data</span>
+
+<span class="sd">        :return: accelerometer coefficients, biases, coefficients of determination</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">)</span>
         <span class="n">intercepts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">)</span>
@@ -241,7 +266,7 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">measured</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">truth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-        <span class="n">coef_determination</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">measured</span> <span class="o">-</span> <span class="n">truth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">coef_determination</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">measured</span> <span class="o">-</span> <span class="n">truth</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_vicon</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">measured</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
@@ -251,7 +276,11 @@
         <span class="k">return</span> <span class="n">coefficients</span><span class="p">,</span> <span class="n">intercepts</span><span class="p">,</span> <span class="n">coef_determination</span></div>
 
 <div class="viewcode-block" id="Trainer.train_vel"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.train_vel">[docs]</a>    <span class="k">def</span> <span class="nf">train_vel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Solves for coefficients for gyro data&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solves for coefficients for accelerometer data</span>
+
+<span class="sd">        :return: gyro coefficients, biases, coefficients of determination</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">)</span>
         <span class="n">intercepts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">)</span>
@@ -270,7 +299,7 @@
         <span class="n">measured</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
             <span class="p">[</span><span class="n">coefficients</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">imu_data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">NUM_AXES</span><span class="p">]</span> <span class="o">+</span> <span class="n">intercepts</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
         <span class="p">])</span>
-        <span class="n">coef_determination</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">measured</span> <span class="o">-</span> <span class="n">vels</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">coef_determination</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">measured</span> <span class="o">-</span> <span class="n">vels</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="n">measured</span> <span class="o">=</span> <span class="n">measured</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NUM_AXES</span><span class="p">):</span>
@@ -282,42 +311,35 @@
         <span class="k">return</span> <span class="n">coefficients</span><span class="p">,</span> <span class="n">intercepts</span><span class="p">,</span> <span class="n">coef_determination</span></div>
 
 <div class="viewcode-block" id="Trainer.clip_data"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.clip_data">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">clip_data</span><span class="p">(</span><span class="n">data_to_clip</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">,</span> <span class="n">ts_imu</span><span class="p">,</span> <span class="n">ts_vicon</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">clip_data</span><span class="p">(</span><span class="n">data_to_clip</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">,</span> <span class="n">ts_to_clip</span><span class="p">,</span> <span class="n">ts_reference</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Lines up both time vectors and interpolates the data to clip to the raw data</span>
-<span class="sd">        Because there&#39;s no guarantee that the two time vectors are the same</span>
+<span class="sd">        because there&#39;s no guarantee that the two time vectors are the same</span>
+
+<span class="sd">        :param data_to_clip: for example, IMU data</span>
+<span class="sd">        :param reference_data: data to which the data to clip will be interpolated</span>
+<span class="sd">        :param ts_to_clip: time vector associated with data to clip</span>
+<span class="sd">        :param ts_reference: time vector associated with reference data</span>
+<span class="sd">        :return: all of the above parameters after clipping/interpolation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">ts_imu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ts_vicon</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="n">ts_vicon</span> <span class="o">-=</span> <span class="n">ts_imu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">ts_imu</span> <span class="o">-=</span> <span class="n">ts_imu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_imu</span> <span class="o">&gt;=</span> <span class="n">ts_vicon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">ts_imu</span> <span class="o">=</span> <span class="n">ts_imu</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">ts_reference</span> <span class="o">-=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ts_to_clip</span> <span class="o">-=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_to_clip</span> <span class="o">&gt;=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ts_to_clip</span> <span class="o">=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
             <span class="n">reference_data</span> <span class="o">=</span> <span class="n">reference_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indexer</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">ts_imu</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ts_vicon</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_imu</span> <span class="o">&lt;=</span> <span class="n">ts_vicon</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">ts_imu</span> <span class="o">=</span> <span class="n">ts_imu</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ts_reference</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_to_clip</span> <span class="o">&lt;=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ts_to_clip</span> <span class="o">=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
             <span class="n">reference_data</span> <span class="o">=</span> <span class="n">reference_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indexer</span><span class="p">]</span>
 
-        <span class="n">interp_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">ts_vicon</span><span class="p">,</span> <span class="n">data_to_clip</span><span class="p">)</span>
-        <span class="n">clipped</span> <span class="o">=</span> <span class="n">interp_func</span><span class="p">(</span><span class="n">ts_imu</span><span class="p">)</span>
-        <span class="n">ts_vicon</span> <span class="o">=</span> <span class="n">ts_imu</span>
+        <span class="n">interp_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">ts_reference</span><span class="p">,</span> <span class="n">data_to_clip</span><span class="p">)</span>
+        <span class="n">clipped</span> <span class="o">=</span> <span class="n">interp_func</span><span class="p">(</span><span class="n">ts_to_clip</span><span class="p">)</span>
+        <span class="n">ts_reference</span> <span class="o">=</span> <span class="n">ts_to_clip</span>
 
-        <span class="k">return</span> <span class="n">clipped</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">,</span> <span class="n">ts_imu</span><span class="p">,</span> <span class="n">ts_vicon</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">estimator.data.datastore</span> <span class="k">import</span> <span class="n">DataStore</span>
-
-    <span class="n">store</span> <span class="o">=</span> <span class="n">DataStore</span><span class="p">(</span><span class="n">dataset_number</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">coefficients</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intercepts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-    <span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">rots_vicon</span><span class="p">,</span> <span class="n">store</span><span class="o">.</span><span class="n">imu_data</span><span class="p">,</span> <span class="n">store</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">,</span> <span class="n">store</span><span class="o">.</span><span class="n">ts_vicon</span><span class="p">)</span>
-
-    <span class="n">coeffs</span><span class="p">,</span> <span class="n">inters</span><span class="p">,</span> <span class="n">coef_det</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">train_vel</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">inters</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">coef_det</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">clipped</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">,</span> <span class="n">ts_to_clip</span><span class="p">,</span> <span class="n">ts_reference</span></div></div>
 </pre></div>
 
            </div>
