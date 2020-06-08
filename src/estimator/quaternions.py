@@ -24,6 +24,14 @@ class Quaternions:
             raise ValueError("Invalid number of dimensions {}".format(array.shape[0]))
         self._array = array
 
+    @property
+    def length(self):
+        shape = self.array.shape
+        if len(shape) > 1:
+            return shape[1]
+        else:
+            return 1
+
     def find_q_mean(self, q_mean, iterations=1000):
         """
         Finds the mean of a quaternion or array of quaternions using gradient descent
@@ -158,6 +166,9 @@ class Quaternions:
         """
         return cls(np.array(qs).T)
 
+    def __len__(self):
+        return self.length
+
     def __eq__(self, other):
         if self.array.shape != other.array.shape:
             raise ValueError("Cannot compare equality of quaternion arrays with different shapes")
@@ -170,6 +181,18 @@ class Quaternions:
 
     def __repr__(self):
         return self.__str__()
+
+    def __getitem__(self, item):
+        is_int = isinstance(item, int)
+        if is_int and not -self.length <= item < self.length:
+            raise IndexError(
+                "Index {} out of bounds for {} of length {}"
+                .format(item, __class__.__name__, self.length)
+            )
+        elif is_int:
+            return Quaternions(self.array[:, item])
+        else:
+            raise TypeError("{} may be indexed only with integers".format(__class__.__name__))
 
     def __str__(self):
 

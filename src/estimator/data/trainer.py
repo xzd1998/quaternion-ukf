@@ -29,7 +29,7 @@ already been calibrated.
    :linenos:
 
    from estimator.data.datastore import DataStore
-   # Note: DataStores calibrates data unless coeffs and inters specified as None
+   # Note: DataStore calibrates data by default unless coeffs and inters specified as None
    store = DataStore(dataset_number=3, coefficients=None, intercepts=None)
    trainer = Trainer(
        store.rots_vicon,
@@ -58,8 +58,10 @@ class Trainer:
     .. code-block::
 
        calibrated = raw * IMU_COEFFICIENTS.reshape(-1, 1) + IMU_INTERCEPTS.reshape(-1, 1)
-    """
 
+    :cvar IMU_COEFFICIENTS: ith coeffient multiplies the ith row of `imu_data`
+    :cvar IMU_INTERCEPTS: ith coeffient is added to the ith row of `imu_data`
+    """
     # Results from combined training on first three datasets
     IMU_COEFFICIENTS = np.array([-0.0936, -0.0944, 0.0945, 0.0155, 0.0158, 0.0161])
     IMU_INTERCEPTS = np.array([47.9, 47.2, -47.4, -5.75, -5.75, -5.95])

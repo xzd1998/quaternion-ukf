@@ -25,7 +25,7 @@ class StateEstimator(ABC):
     def estimate_state(self):
         """
         Uses data provided by the source to estimate the state history of the filter
-        After calling this function, all properties of this class must not be null
+        After calling this function, the state and rotation history will be defined
         """
 
     def _integrate_vel(self):
