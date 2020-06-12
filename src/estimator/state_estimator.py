@@ -75,15 +75,14 @@ class StateEstimator(ABC):
     def _normalize_data(data, mag=1):
         return data / np.linalg.norm(data, axis=0) * mag
 
-    @staticmethod
-    def plot_comparison(rots_est, ts_imu, rots_vicon, ts_vicon):
+    def plot_comparison(self):
         """ Makes 3 plots for roll, pitch, and yaw comparisons of estimated versus truth data """
 
-        rots_truth_copy = np.copy(rots_vicon)
-        ts_vicon = np.copy(ts_vicon.reshape(-1))
-        t_start = min(ts_vicon[0], ts_imu[0])
-        rots_truth_copy = rots_truth_copy[..., ts_vicon > ts_imu[0]]
-        rots_est_copy = rots_est[..., ts_imu > ts_vicon[0]]
+        rots_truth_copy = np.copy(self.source.rots_vicon)
+        ts_vicon = np.copy(self.source.ts_vicon.reshape(-1))
+        t_start = min(ts_vicon[0], self.source.ts_imu[0])
+        rots_truth_copy = rots_truth_copy[..., ts_vicon > self.source.ts_imu[0]]
+        rots_est_copy = self.rots[..., self.source.ts_imu > ts_vicon[0]]
 
         labels = ["Roll", "Pitch", "Yaw"]
 
@@ -92,8 +91,8 @@ class StateEstimator(ABC):
 
         for i in range(3):
             plt.figure(i)
-            plt.plot(ts_vicon[ts_vicon > ts_imu[0]] - t_start, angs_truth[i])
-            plt.plot(ts_imu[ts_imu > ts_vicon[0]] - t_start, angs_est[i])
+            plt.plot(ts_vicon[ts_vicon > self.source.ts_imu[0]] - t_start, angs_truth[i])
+            plt.plot(self.source.ts_imu[self.source.ts_imu > ts_vicon[0]] - t_start, angs_est[i])
             plt.xlabel("Time [s]")
             plt.ylabel(labels[i] + " Angle [rad]")
             plt.grid(True)

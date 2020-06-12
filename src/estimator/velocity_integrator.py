@@ -12,7 +12,7 @@ from estimator.state_estimator import StateEstimator
 from estimator.quaternions import Quaternions
 
 
-class QuaternionIntegrator(StateEstimator):
+class VelocityIntegrator(StateEstimator):
 
     state_dof = 6
 
@@ -40,15 +40,3 @@ class QuaternionIntegrator(StateEstimator):
         self.quats.append(q_next)
         self.rots[..., i] = q_next.to_rotation_matrix()
         self.acc_calc[:, i] = q_next.q_multiply(self.g_quat).q_multiply(q_next.inverse()).array[1:]
-
-
-if __name__ == "__main__":
-
-    planner = estimator.data.trajectoryplanner.round_trip_easy
-    data_source = DataMaker(planner)
-
-    f = QuaternionIntegrator(data_source)
-    f.estimate_state()
-
-    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [data_source.ts, data_source.ts], data_source.angles, f.angles)
-    # utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.acc_data / g, f.acc_calc)

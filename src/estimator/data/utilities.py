@@ -130,7 +130,7 @@ def angles_to_rots_xyz(roll, pitch, yaw):
     return rots
 
 
-def plot_rowwise_data(data_labels, y_labels, ts, *datasets):
+def plot_data_comparison(data_labels, y_labels, ts, datasets):
     n_plots = len(y_labels)
     n_sets = len(datasets)
 

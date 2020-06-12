@@ -164,26 +164,25 @@ if __name__ == "__main__":
     f.estimate_state()
 
     if not num:
-        utilities.plot_rowwise_data(
+        utilities.plot_data_comparison(
             ["z-axis"],
             ["x", "y", "z"],
             [source.ts, source.ts],
-            source.angles,
-            f.angles
+            [source.angles, f.angles]
         )
         Wps = [f.Wps[:, i, :] for i in range(f.Wps.shape[1])]
-        utilities.plot_rowwise_data(
+        utilities.plot_data_comparison(
             [i for i in range(f.Wps.shape[1])],
             ["x", "y", "z"],
             [source.ts for _ in range(f.Wps.shape[1])],
-            *Wps
+            Wps
         )
-        utilities.plot_rowwise_data(
+        utilities.plot_data_comparison(
             ["z-axis"],
             ["w", "i", "j", "k"],
             [source.ts for _ in range(f.mu.shape[1])],
-            f.mu
+            [f.mu]
         )
         pass
     else:
-        StateEstimator.plot_comparison(f.rots, f.ts_imu, source.rots_vicon, source.ts_vicon)
+        f.plot_comparison()

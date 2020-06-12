@@ -49,4 +49,4 @@ if __name__ == "__main__":
     maker = DataMaker(planner)
     ang_labels = ["roll", "pitch", "yaw"]
     vel_labels = ["wx", "wy", "wz"]
-    utilities.plot_rowwise_data(["z-axis"], ang_labels, [maker.ts], maker.angles)
+    utilities.plot_data_comparison(["z-axis"], ang_labels, [maker.ts], [maker.angles])

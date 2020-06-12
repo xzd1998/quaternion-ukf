@@ -126,4 +126,4 @@ if __name__ == "__main__":
     f = VectorUkf3(source, R, Q)
     f.estimate_state()
 
-    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
+    utilities.plot_data_comparison(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], [source.angles, f.angles])

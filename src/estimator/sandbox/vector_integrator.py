@@ -22,14 +22,3 @@ class VectorIntegrator(StateEstimator):
             mu[:, i + 1] = mu[:, i] + self.vel_data[:, i] * dt
 
         self.rots = utilities.vectors_to_rots(mu)
-
-
-if __name__ == "__main__":
-
-    planner = trajectoryplanner.round_trip_easy
-    source = DataMaker(planner)
-
-    f = VectorIntegrator(source)
-    f.estimate_state()
-
-    utilities.plot_rowwise_data(["z-axis"], ["x", "y", "z"], [source.ts, source.ts], source.angles, f.angles)
