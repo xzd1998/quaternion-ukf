@@ -76,6 +76,8 @@ if __name__ == "__main__":
         Q = np.copy(R)
         R[:3, :3] *= 10
 
+    print("Running estimators...")
+
     ukf = QuaternionUkf(data_source, R, Q)
     ukf.estimate_state()
 
@@ -95,12 +97,14 @@ if __name__ == "__main__":
     angles = [utilities.rots_to_angles_zyx(est.rots) for est in estimators]
     angles.append(utilities.rots_to_angles_zyx(data_source.rots_vicon))
 
+    print("Results:")
+
     max_length = max(len(name) for name in legend_labels)
     for estimator in estimators:
         NAME = estimator.__class__.__name__
         rmse_list = ["%.4f" % rmse for rmse in estimator.evaluate_estimation()]
         print(
-            "{} RMSE: {}{}"
+            "  {} RMSE: {}{}"
             .format(NAME, " " * (max_length - len(NAME)), rmse_list)
             .replace("'", "")
         )
