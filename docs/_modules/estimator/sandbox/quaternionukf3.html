@@ -314,29 +314,28 @@
     <span class="n">f</span><span class="o">.</span><span class="n">estimate_state</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">num</span><span class="p">:</span>
-        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_rowwise_data</span><span class="p">(</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_data_comparison</span><span class="p">(</span>
             <span class="p">[</span><span class="s2">&quot;z-axis&quot;</span><span class="p">],</span>
             <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">],</span>
             <span class="p">[</span><span class="n">source</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">ts</span><span class="p">],</span>
-            <span class="n">source</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">angles</span>
+            <span class="p">[</span><span class="n">source</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">angles</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="n">Wps</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">Wps</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">Wps</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
-        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_rowwise_data</span><span class="p">(</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_data_comparison</span><span class="p">(</span>
             <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">Wps</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span>
             <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">],</span>
             <span class="p">[</span><span class="n">source</span><span class="o">.</span><span class="n">ts</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">Wps</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span>
-            <span class="o">*</span><span class="n">Wps</span>
+            <span class="n">Wps</span>
         <span class="p">)</span>
-        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_rowwise_data</span><span class="p">(</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_data_comparison</span><span class="p">(</span>
             <span class="p">[</span><span class="s2">&quot;z-axis&quot;</span><span class="p">],</span>
             <span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="s2">&quot;j&quot;</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">],</span>
             <span class="p">[</span><span class="n">source</span><span class="o">.</span><span class="n">ts</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">mu</span>
+            <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">mu</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="k">pass</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">StateEstimator</span><span class="o">.</span><span class="n">plot_comparison</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">rots</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">rots_vicon</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">ts_vicon</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">evaluate_estimation</span><span class="p">()</span>
 </pre></div>
 
            </div>

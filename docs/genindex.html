@@ -168,7 +168,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#V"><strong>V</strong></a>
- | <a href="#Z"><strong>Z</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -179,11 +179,7 @@
       <li><a href="estimator.data.html#estimator.data.utilities.accs_to_roll_pitch">accs_to_roll_pitch() (in module estimator.data.utilities)</a>
 </li>
       <li><a href="estimator.data.html#estimator.data.datasource.DataSource.angles">angles() (DataSource method)</a>
-
-      <ul>
-        <li><a href="estimator.html#estimator.state_estimator.StateEstimator.angles">(StateEstimator method)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="estimator.data.html#estimator.data.utilities.angles_to_rots_xyz">angles_to_rots_xyz() (in module estimator.data.utilities)</a>
@@ -222,24 +218,24 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.html#estimator.quaternions.Quaternions.epsilon">epsilon (Quaternions attribute)</a>
+      <li><a href="estimator.html#estimator.quaternions.Quaternions.EPSILON">EPSILON (Quaternions attribute)</a>
 </li>
-      <li><a href="estimator.html#estimator.quaternion_integrator.QuaternionIntegrator.estimate_state">estimate_state() (QuaternionIntegrator method)</a>
+      <li><a href="estimator.html#estimator.quaternionukf.QuaternionUkf.estimate_state">estimate_state() (QuaternionUkf method)</a>
 
       <ul>
-        <li><a href="estimator.html#estimator.quaternionukf.QuaternionUkf.estimate_state">(QuaternionUkf method)</a>
-</li>
         <li><a href="estimator.sandbox.html#estimator.sandbox.quaternionukf3.QuaternionUkf3.estimate_state">(QuaternionUkf3 method)</a>
 </li>
         <li><a href="estimator.html#estimator.roll_pitch_calculator.RollPitchCalculator.estimate_state">(RollPitchCalculator method)</a>
 </li>
         <li><a href="estimator.html#estimator.state_estimator.StateEstimator.estimate_state">(StateEstimator method)</a>
 </li>
-        <li><a href="estimator.html#estimator.vector_integrator.VectorIntegrator.estimate_state">(VectorIntegrator method)</a>
+        <li><a href="estimator.sandbox.html#estimator.sandbox.vector_integrator.VectorIntegrator.estimate_state">(VectorIntegrator method)</a>
 </li>
         <li><a href="estimator.sandbox.html#estimator.sandbox.vectorukf3.VectorUkf3.estimate_state">(VectorUkf3 method)</a>
 </li>
         <li><a href="estimator.sandbox.html#estimator.sandbox.vectorukf6.VectorUkf6.estimate_state">(VectorUkf6 method)</a>
+</li>
+        <li><a href="estimator.html#estimator.velocity_integrator.VelocityIntegrator.estimate_state">(VelocityIntegrator method)</a>
 </li>
       </ul></li>
       <li>
@@ -291,8 +287,6 @@
         <li><a href="estimator.data.html#module-estimator.data.trainer">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     estimator.data.trajectoryplanner
 
@@ -300,18 +294,13 @@
         <li><a href="estimator.data.html#module-estimator.data.trajectoryplanner">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     estimator.data.utilities
 
       <ul>
         <li><a href="estimator.data.html#module-estimator.data.utilities">module</a>
-</li>
-      </ul></li>
-      <li>
-    estimator.quaternion_integrator
-
-      <ul>
-        <li><a href="estimator.html#module-estimator.quaternion_integrator">module</a>
 </li>
       </ul></li>
       <li>
@@ -350,6 +339,13 @@
 </li>
       </ul></li>
       <li>
+    estimator.sandbox.vector_integrator
+
+      <ul>
+        <li><a href="estimator.sandbox.html#module-estimator.sandbox.vector_integrator">module</a>
+</li>
+      </ul></li>
+      <li>
     estimator.sandbox.vectorukf3
 
       <ul>
@@ -371,12 +367,14 @@
 </li>
       </ul></li>
       <li>
-    estimator.vector_integrator
+    estimator.velocity_integrator
 
       <ul>
-        <li><a href="estimator.html#module-estimator.vector_integrator">module</a>
+        <li><a href="estimator.html#module-estimator.velocity_integrator">module</a>
 </li>
       </ul></li>
+      <li><a href="estimator.html#estimator.state_estimator.StateEstimator.evaluate_estimation">evaluate_estimation() (StateEstimator method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -469,8 +467,6 @@
 </li>
         <li><a href="estimator.data.html#module-estimator.data.utilities">estimator.data.utilities</a>
 </li>
-        <li><a href="estimator.html#module-estimator.quaternion_integrator">estimator.quaternion_integrator</a>
-</li>
         <li><a href="estimator.html#module-estimator.quaternions">estimator.quaternions</a>
 </li>
         <li><a href="estimator.html#module-estimator.quaternionukf">estimator.quaternionukf</a>
@@ -481,13 +477,15 @@
 </li>
         <li><a href="estimator.sandbox.html#module-estimator.sandbox.quaternionukf3">estimator.sandbox.quaternionukf3</a>
 </li>
+        <li><a href="estimator.sandbox.html#module-estimator.sandbox.vector_integrator">estimator.sandbox.vector_integrator</a>
+</li>
         <li><a href="estimator.sandbox.html#module-estimator.sandbox.vectorukf3">estimator.sandbox.vectorukf3</a>
 </li>
         <li><a href="estimator.sandbox.html#module-estimator.sandbox.vectorukf6">estimator.sandbox.vectorukf6</a>
 </li>
         <li><a href="estimator.html#module-estimator.state_estimator">estimator.state_estimator</a>
 </li>
-        <li><a href="estimator.html#module-estimator.vector_integrator">estimator.vector_integrator</a>
+        <li><a href="estimator.html#module-estimator.velocity_integrator">estimator.velocity_integrator</a>
 </li>
       </ul></li>
   </ul></td>
@@ -502,7 +500,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="estimator.html#estimator.roll_pitch_calculator.RollPitchCalculator.N_DIM">N_DIM (RollPitchCalculator attribute)</a>
 </li>
-      <li><a href="estimator.html#estimator.quaternions.Quaternions.ndim">ndim (Quaternions attribute)</a>
+      <li><a href="estimator.html#estimator.quaternions.Quaternions.NDIM">NDIM (Quaternions attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -516,11 +514,7 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.html#estimator.state_estimator.StateEstimator.plot_comparison">plot_comparison() (StateEstimator static method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.data.html#estimator.data.utilities.plot_rowwise_data">plot_rowwise_data() (in module estimator.data.utilities)</a>
+      <li><a href="estimator.data.html#estimator.data.utilities.plot_data_comparison">plot_data_comparison() (in module estimator.data.utilities)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -530,12 +524,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="estimator.html#estimator.quaternions.Quaternions.q_multiply">q_multiply() (Quaternions method)</a>
 </li>
-      <li><a href="estimator.html#estimator.quaternion_integrator.QuaternionIntegrator">QuaternionIntegrator (class in estimator.quaternion_integrator)</a>
+      <li><a href="estimator.html#estimator.quaternions.Quaternions">Quaternions (class in estimator.quaternions)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.html#estimator.quaternions.Quaternions">Quaternions (class in estimator.quaternions)</a>
-</li>
       <li><a href="estimator.html#estimator.quaternionukf.QuaternionUkf">QuaternionUkf (class in estimator.quaternionukf)</a>
 </li>
       <li><a href="estimator.sandbox.html#estimator.sandbox.quaternionukf3.QuaternionUkf3">QuaternionUkf3 (class in estimator.sandbox.quaternionukf3)</a>
@@ -572,18 +564,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="estimator.data.html#estimator.data.trajectoryplanner.SimplePlanner">SimplePlanner (class in estimator.data.trajectoryplanner)</a>
 </li>
-      <li><a href="estimator.html#estimator.quaternion_integrator.QuaternionIntegrator.state_dof">state_dof (QuaternionIntegrator attribute)</a>
+      <li><a href="estimator.sandbox.html#estimator.sandbox.quaternionukf3.QuaternionUkf3.state_dof">state_dof (QuaternionUkf3 attribute)</a>
 
       <ul>
-        <li><a href="estimator.sandbox.html#estimator.sandbox.quaternionukf3.QuaternionUkf3.state_dof">(QuaternionUkf3 attribute)</a>
-</li>
         <li><a href="estimator.sandbox.html#estimator.sandbox.vectorukf3.VectorUkf3.state_dof">(VectorUkf3 attribute)</a>
+</li>
+        <li><a href="estimator.html#estimator.velocity_integrator.VelocityIntegrator.state_dof">(VelocityIntegrator attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.html#estimator.state_estimator.StateEstimator.state_dof">state_dof() (StateEstimator property)</a>
-</li>
       <li><a href="estimator.html#estimator.state_estimator.StateEstimator">StateEstimator (class in estimator.state_estimator)</a>
 </li>
       <li><a href="estimator.data.html#estimator.data.trajectoryplanner.StationaryPlanner">StationaryPlanner (class in estimator.data.trajectoryplanner)</a>
@@ -616,25 +606,27 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.html#estimator.vector_integrator.VectorIntegrator">VectorIntegrator (class in estimator.vector_integrator)</a>
+      <li><a href="estimator.sandbox.html#estimator.sandbox.vector_integrator.VectorIntegrator">VectorIntegrator (class in estimator.sandbox.vector_integrator)</a>
 </li>
       <li><a href="estimator.data.html#estimator.data.utilities.vectors_to_rots">vectors_to_rots() (in module estimator.data.utilities)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="estimator.sandbox.html#estimator.sandbox.vectorukf3.VectorUkf3">VectorUkf3 (class in estimator.sandbox.vectorukf3)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="estimator.sandbox.html#estimator.sandbox.vectorukf6.VectorUkf6">VectorUkf6 (class in estimator.sandbox.vectorukf6)</a>
 </li>
       <li><a href="estimator.html#estimator.state_estimator.StateEstimator.vel_data">vel_data() (StateEstimator property)</a>
 </li>
+      <li><a href="estimator.html#estimator.velocity_integrator.VelocityIntegrator">VelocityIntegrator (class in estimator.velocity_integrator)</a>
+</li>
   </ul></td>
 </tr></table>
 
-<h2 id="Z">Z</h2>
+<h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="estimator.html#estimator.quaternions.ZeroQuaternionException">ZeroQuaternionException</a>
+      <li><a href="estimator.html#estimator.quaternions.Quaternions.with_positive_scalar">with_positive_scalar() (Quaternions method)</a>
 </li>
   </ul></td>
 </tr></table>

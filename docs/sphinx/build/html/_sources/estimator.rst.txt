@@ -21,14 +21,6 @@ estimator.constants
    :undoc-members:
    :show-inheritance:
 
-estimator.quaternion\_integrator
---------------------------------
-
-.. automodule:: estimator.quaternion_integrator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 estimator.quaternions
 ---------------------
 
@@ -61,10 +53,10 @@ estimator.state\_estimator
    :undoc-members:
    :show-inheritance:
 
-estimator.vector\_integrator
-----------------------------
+estimator.velocity\_integrator
+------------------------------
 
-.. automodule:: estimator.vector_integrator
+.. automodule:: estimator.velocity_integrator
    :members:
    :undoc-members:
    :show-inheritance:

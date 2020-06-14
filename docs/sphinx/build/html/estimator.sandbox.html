@@ -94,12 +94,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.constants">estimator.constants</a></li>
-<li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.quaternion_integrator">estimator.quaternion_integrator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.quaternions">estimator.quaternions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.quaternionukf">estimator.quaternionukf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.roll_pitch_calculator">estimator.roll_pitch_calculator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.state_estimator">estimator.state_estimator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.vector_integrator">estimator.vector_integrator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.velocity_integrator">estimator.velocity_integrator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator">Module contents</a></li>
 </ul>
 </li>
@@ -200,6 +199,22 @@ After calling this function, the state and rotation history will be defined</p>
 <dt id="estimator.sandbox.quaternionukf3.QuaternionUkf3.state_dof">
 <code class="sig-name descname">state_dof</code><em class="property"> = 3</em><a class="headerlink" href="#estimator.sandbox.quaternionukf3.QuaternionUkf3.state_dof" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-estimator.sandbox.vector_integrator">
+<span id="estimator-sandbox-vector-integrator"></span><h2>estimator.sandbox.vector_integrator<a class="headerlink" href="#module-estimator.sandbox.vector_integrator" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="estimator.sandbox.vector_integrator.VectorIntegrator">
+<em class="property">class </em><code class="sig-name descname">VectorIntegrator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/sandbox/vector_integrator.html#VectorIntegrator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.sandbox.vector_integrator.VectorIntegrator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="estimator.html#estimator.state_estimator.StateEstimator" title="estimator.state_estimator.StateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.state_estimator.StateEstimator</span></code></a></p>
+<dl class="py method">
+<dt id="estimator.sandbox.vector_integrator.VectorIntegrator.estimate_state">
+<code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/sandbox/vector_integrator.html#VectorIntegrator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.sandbox.vector_integrator.VectorIntegrator.estimate_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses data provided by the source to estimate the state history of the filter
+After calling this function, the state and rotation history will be defined</p>
+</dd></dl>
 
 </dd></dl>
 

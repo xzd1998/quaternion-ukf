@@ -95,12 +95,11 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.constants">estimator.constants</a></li>
-<li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.quaternion_integrator">estimator.quaternion_integrator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.quaternions">estimator.quaternions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.quaternionukf">estimator.quaternionukf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.roll_pitch_calculator">estimator.roll_pitch_calculator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.state_estimator">estimator.state_estimator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.vector_integrator">estimator.vector_integrator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator.velocity_integrator">estimator.velocity_integrator</a></li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#module-estimator">Module contents</a></li>
 </ul>
 </li>
@@ -217,8 +216,6 @@
 </div>
 <div class="section" id="module-estimator.data.trainer">
 <span id="estimator-data-trainer"></span><h2>estimator.data.trainer<a class="headerlink" href="#module-estimator.data.trainer" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="trainer">
-<h3>Trainer<a class="headerlink" href="#trainer" title="Permalink to this headline">¶</a></h3>
 <p>Calibrates IMU data using linear regression after transforming ground-truth data,
 which comes in the form of rotation matrices. The rotation matrix data is
 transformed into the expected gravity vector and expected angular velocity vector
@@ -334,7 +331,6 @@ because there’s no guarantee that the two time vectors are the same</p>
 </dd></dl>
 
 </div>
-</div>
 <div class="section" id="module-estimator.data.trajectoryplanner">
 <span id="estimator-data-trajectoryplanner"></span><h2>estimator.data.trajectoryplanner<a class="headerlink" href="#module-estimator.data.trajectoryplanner" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -410,8 +406,8 @@ because there’s no guarantee that the two time vectors are the same</p>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="estimator.data.utilities.plot_rowwise_data">
-<code class="sig-name descname">plot_rowwise_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_labels</span></em>, <em class="sig-param"><span class="n">y_labels</span></em>, <em class="sig-param"><span class="n">ts</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">datasets</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#plot_rowwise_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.plot_rowwise_data" title="Permalink to this definition">¶</a></dt>
+<dt id="estimator.data.utilities.plot_data_comparison">
+<code class="sig-name descname">plot_data_comparison</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_labels</span></em>, <em class="sig-param"><span class="n">y_labels</span></em>, <em class="sig-param"><span class="n">ts</span></em>, <em class="sig-param"><span class="n">datasets</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#plot_data_comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.plot_data_comparison" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
