@@ -12,7 +12,7 @@ are allowed between two Quaternions objects when:
 
 For example all of the following are allowed:
 
-.. code-block:
+.. code-block::
    :linenos:
 
    import numpy as np
