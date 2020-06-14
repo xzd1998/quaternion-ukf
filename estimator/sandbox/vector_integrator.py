@@ -1,7 +1,6 @@
 import numpy as np
 
-from estimator.data import trajectoryplanner, utilities
-from estimator.data.datamaker import DataMaker
+from estimator.data import utilities
 from estimator.state_estimator import StateEstimator
 from estimator.quaternions import Quaternions
 

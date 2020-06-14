@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-d",
         "--dataset-num",
-        required=False, help="Number of data file (1 to 3 inclusive)"
+        required=False, help="Number associated with dataset (1 to 3 inclusive)"
     )
 
     args = vars(parser.parse_args())
