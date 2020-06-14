@@ -111,6 +111,7 @@ class QuaternionUkf(StateEstimator):
         """
         Prints contents to the terminal for the specified period of time
         """
+
         if t_min <= self._t <= t_min + interval:
             print("Time {} seconds".format(self._t))
             for content in contents:
@@ -122,6 +123,7 @@ class QuaternionUkf(StateEstimator):
 
         :param cov_last: estimated state covariance matrix at the previous timestep
         """
+
         cov_muliplier = STATE_DOF
         positive_offsets = np.linalg.cholesky(cov_muliplier * (cov_last + self.process_noise))
         offsets = np.concatenate((positive_offsets, -positive_offsets), axis=1)

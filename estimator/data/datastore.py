@@ -1,3 +1,7 @@
+"""
+In contrast to :code:`DataMaker`s, :code:`DataStore`s load real sensor data.
+"""
+
 import os
 
 import numpy as np
@@ -8,9 +12,19 @@ from estimator.data.trainer import Trainer
 from estimator.constants import STATE_DOF
 
 
-class DataStore(DataSource):
+class DataStore(DataSource):  # pylint: disable=too-few-public-methods
     """
-    Loads data from an existing source of matching vicon and imu data
+    Loads data from an existing source of matching vicon and imu data. If the intention is
+    to calibrate the data, :code:`coefficients` and :code:`intercepts` should be specified
+    as :code:`None`, otherwise the :code:`DataSource` will automatically calibrate the data
+    using the static members defined in :doc:`./trainer`
+
+    :ivar dataset_number: corresponding to the numbers in the filenames
+    :ivar path_to_data: path to the directory of this package
+    :ivar coefficients: linear coefficients for imu data
+                         may be set to none to leave data uncalibrated
+    :ivar intercepts: biases for imu data
+                       may be set to none to leave data uncalibrated
     """
     def __init__(
             self,
@@ -19,14 +33,6 @@ class DataStore(DataSource):
             coefficients=Trainer.IMU_COEFFICIENTS,
             intercepts=Trainer.IMU_INTERCEPTS
     ):
-        """
-        :param dataset_number: corresponding to the numbers in the filenames
-        :param path_to_data: path to the directory of this package
-        :param coefficients: linear coefficients for imu data
-                             may be set to none to leave data uncalibrated
-        :param intercepts: biases for imu data
-                           may be set to none to leave data uncalibrated
-        """
         if coefficients is not None and coefficients.shape != (STATE_DOF,):
             raise ValueError(
                 "Value coefficients are invalid: expected {} but got {}"

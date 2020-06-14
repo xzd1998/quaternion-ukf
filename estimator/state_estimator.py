@@ -18,7 +18,6 @@ class StateEstimator(ABC):
     def __init__(self, source):
         self.source = source
         self.rots = None
-        self.state = None
 
     @abstractmethod
     def estimate_state(self):

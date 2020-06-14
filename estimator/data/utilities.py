@@ -1,9 +1,18 @@
+"""
+Functions that don't fit nicely into any one class defined in the **estimator** module.
+Most are conversions between different types of rotations.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.constants import g
 
 
 def rots_to_angles_zyx(rots):
+    """
+    Converts rotation matrices of shape (3, 3, N), N >= 0, to roll, pitch, and yaw
+    Euler angles using the ZYX convention
+    """
     roll = np.arctan2(rots[2, 1], rots[2, 2])
     pitch = np.arctan2(-rots[2, 0], np.sqrt(np.square(rots[2, 1]) + np.square(rots[2, 2])))
     yaw = np.arctan2(rots[1, 0], rots[0, 0])
@@ -12,6 +21,10 @@ def rots_to_angles_zyx(rots):
 
 
 def rots_to_angles_xyz(rots):
+    """
+    Converts rotation matrices of shape (3, 3, N), N >= 0, to roll, pitch, and yaw
+    Euler angles using the XYZ convention
+    """
     roll = np.arctan2(-rots[1, 2], rots[2, 2])
     pitch = np.arctan2(rots[0, 2], np.sqrt(np.square(rots[1, 2]) + np.square(rots[2, 2])))
     yaw = np.arctan2(-rots[0, 1], rots[0, 0])
@@ -19,15 +32,36 @@ def rots_to_angles_xyz(rots):
     return roll, pitch, yaw
 
 
-def rots_to_vels(rots, ts):
+def rots_to_vels(rots, times):
+    """
+    Converts rotation matrices over time to angular velocities using the ZYX convention
+    
+    :param rots: (3, 3, N), N > 1 numpy array of rotation matrices
+    :param times: time vector of length N associated with rotation matrices
+    :return: roll, pitch, and yaw velocities
+    """
+    def make_angles_continuous(angles):
+        for row in angles:
+            for i in range(1, row.shape[0]):
+                diff = row[i] - row[i - 1]
+                if np.abs(diff) > np.pi:
+                    row[i] = row[i] - np.sign(diff) * 2 * np.pi
     roll, pitch, yaw = rots_to_angles_zyx(rots)
     make_angles_continuous([roll, pitch, yaw])
-    dts = np.diff(ts)
-    dr, dp, dy = (np.diff(roll) / dts, np.diff(pitch) / dts, np.diff(yaw) / dts)
-    return np.vstack((dr, dp, dy)), ts[:-1]
+    dts = np.diff(times)
+    droll, dpitch, dyaw = (np.diff(roll) / dts, np.diff(pitch) / dts, np.diff(yaw) / dts)
+    return np.vstack((droll, dpitch, dyaw)), times[:-1]
 
 
 def rots_to_accs(rots, noise=None):
+    """
+    Converts rotation matrices to the expected accelerometer data that would be gathered
+    if the robot was in the provided series of rotations
+
+    :param rots: (3, 3, N), N > 1 numpy array of rotation matrices
+    :param noise: to apply to the accelerometer estimate, used when making toy data
+    :return: expected accelerometer data
+    """
     result = np.zeros((rots.shape[0], 1, rots.shape[-1]))
     gravity = np.array([0, 0, g]).reshape(3, 1)
     for i in range(rots.shape[-1]):
@@ -38,53 +72,65 @@ def rots_to_accs(rots, noise=None):
     return result.reshape(3, -1)
 
 
-def make_angles_continuous(angles):
-    for row in angles:
-        for i in range(1, row.shape[0]):
-            d = row[i] - row[i - 1]
-            if np.abs(d) > np.pi:
-                row[i] = row[i] - np.sign(d) * 2 * np.pi
+def moving_average(data, num=9):
+    """
+    Filter input data with moving average
 
+    :param data: data to filter
+    :param num: length of moving average window
+    :return: averaged data
+    """
 
-def moving_average(data, n=9):
     averaged = np.zeros(data.shape)
     for i in range(data.shape[0]):
-        averaged[i] = np.convolve(data[i], np.ones(n) / n, "same")
+        averaged[i] = np.convolve(data[i], np.ones(num) / num, "same")
     return averaged
 
 
 def vectors_to_rots(raw):
+    """
+    Converts array of rotation vectors to rotation matrices
+
+    :param raw: (3, N), N >= 0 numpy array of rotation vectors
+    :return: corresponding rotation matrices
+    """
     vecs = np.copy(raw)
     if len(vecs.shape) == 1:
         vecs = vecs.reshape(-1, 1)
     rots = np.zeros((3, 3, vecs.shape[-1]))
-    k = np.zeros((3, vecs.shape[-1]))
+    axis = np.zeros((3, vecs.shape[-1]))
     theta = np.linalg.norm(vecs, axis=0)
     indexer = theta > 0
 
-    k[:, indexer] = vecs[:, indexer] / theta[indexer]
-    kx = k[0]
-    ky = k[1]
-    kz = k[2]
+    axis[:, indexer] = vecs[:, indexer] / theta[indexer]
+    axis_x = axis[0]
+    axis_y = axis[1]
+    axis_z = axis[2]
 
     c_th = np.cos(theta)
     v_th = 1 - np.cos(theta)
     s_th = np.sin(theta)
 
-    rots[0, 0] = np.square(kx) * v_th + c_th
-    rots[1, 0] = kx * ky * v_th + kz * s_th
-    rots[2, 0] = kx * kz * v_th - ky * s_th
-    rots[0, 1] = kx * ky * v_th - kz * s_th
-    rots[1, 1] = np.square(ky) * v_th + c_th
-    rots[2, 1] = ky * kz * v_th + kx * s_th
-    rots[0, 2] = kx * kz * v_th + ky * s_th
-    rots[1, 2] = ky * kz * v_th - kx * s_th
-    rots[2, 2] = np.square(kz) * v_th + c_th
+    rots[0, 0] = np.square(axis_x) * v_th + c_th
+    rots[1, 0] = axis_x * axis_y * v_th + axis_z * s_th
+    rots[2, 0] = axis_x * axis_z * v_th - axis_y * s_th
+    rots[0, 1] = axis_x * axis_y * v_th - axis_z * s_th
+    rots[1, 1] = np.square(axis_y) * v_th + c_th
+    rots[2, 1] = axis_y * axis_z * v_th + axis_x * s_th
+    rots[0, 2] = axis_x * axis_z * v_th + axis_y * s_th
+    rots[1, 2] = axis_y * axis_z * v_th - axis_x * s_th
+    rots[2, 2] = np.square(axis_z) * v_th + c_th
 
     return rots
 
 
 def rots_to_vectors(raw):
+    """
+    Converts array of rotation matrices to rotation vectors
+
+    :param raw: (3, 3, N), N >= 0 numpy array of rotation matrices
+    :return: corresponding rotation vectors
+    """
     if len(raw.shape) == 2:
         rots = raw.reshape(3, 3, 1)
     else:
@@ -103,6 +149,10 @@ def rots_to_vectors(raw):
 
 
 def angles_to_rots_zyx(roll, pitch, yaw):
+    """
+    Converts ZYX Euler angles to (3, 3, N) array of rotation matrices
+    """
+
     rots = np.zeros((3, 3, roll.shape[0]))
     rots[0, 0] = np.cos(yaw) * np.cos(pitch)
     rots[1, 0] = np.sin(yaw) * np.cos(pitch)
@@ -117,6 +167,10 @@ def angles_to_rots_zyx(roll, pitch, yaw):
 
 
 def angles_to_rots_xyz(roll, pitch, yaw):
+    """
+    Converts XYZ Euler angles to (3, 3, N) array of rotation matrices
+    """
+
     rots = np.zeros((3, 3, roll.shape[0]))
     rots[0, 0] = np.cos(yaw) * np.cos(pitch)
     rots[0, 1] = -np.sin(yaw) * np.cos(pitch)
@@ -130,7 +184,16 @@ def angles_to_rots_xyz(roll, pitch, yaw):
     return rots
 
 
-def plot_data_comparison(data_labels, y_labels, ts, datasets):
+def plot_data_comparison(data_labels, y_labels, time_vectors, datasets):
+    """
+    Plots overlapping time series datasets together for comparison
+    
+    :param data_labels: labels for the legend for each dataset
+    :param y_labels: labels for the y-axis of each plot
+    :param time_vectors: time vector associated with each dataset
+    :param datasets: data to plot
+    """
+
     n_plots = len(y_labels)
     n_sets = len(datasets)
 
@@ -141,7 +204,7 @@ def plot_data_comparison(data_labels, y_labels, ts, datasets):
     for i in range(n_plots):
         plt.figure(i)
         for j in range(n_sets):
-            plt.plot(ts[j], datasets[j][i])
+            plt.plot(time_vectors[j], datasets[j][i])
         plt.xlabel("Time [s]")
         plt.ylabel(y_labels[i] + " Angle [rad]")
         plt.legend(data_labels)
@@ -150,23 +213,21 @@ def plot_data_comparison(data_labels, y_labels, ts, datasets):
 
 
 def accs_to_roll_pitch(accs):
+    """
+    Calculates roll and pitch from accelerometer data assuming ZYX convention
+
+    :param accs: (3, N), N >= 0 numpy array of accelerometer data
+    :return: corresponding arrays of roll and pitch angles
+    """
+
     roll = np.arctan2(accs[1], accs[2])
     pitch = np.arctan2(-accs[0], np.sqrt(np.square(accs[1]) + np.square(accs[2])))
     return roll, pitch
 
 
 def normalize_vectors(vectors):
+    """Normalizes vectors row-wise, ignoring vectors of all zeros."""
+
     norm = np.linalg.norm(vectors, axis=0)
     vectors[:, norm > 0] /= norm[norm > 0]
     return vectors
-
-
-if __name__ == "__main__":
-    rpy = np.random.randn(3, 1)
-    print(rpy)
-    rot = angles_to_rots_zyx(rpy[0], rpy[1], rpy[2])
-    r, p, y = rots_to_angles_zyx(rot)
-    rpy_again = np.array([r, p, y]).reshape(3, 1)
-    print(rots_to_angles_zyx(rot))
-    print(np.abs(rpy - rpy_again) < .001)
-

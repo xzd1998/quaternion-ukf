@@ -158,32 +158,32 @@ class Trainer:
         return coefficients, intercepts, coef_determination
 
     @staticmethod
-    def clip_data(data_to_clip, reference_data, ts_to_clip, ts_reference):
+    def clip_data(data_to_clip, data_reference, ts_reference, ts_to_clip):
         """
         Lines up both time vectors and interpolates the data to clip to the raw data
         because there's no guarantee that the two time vectors are the same
 
-        :param data_to_clip: for example, IMU data
-        :param reference_data: data to which the data to clip will be interpolated
-        :param ts_to_clip: time vector associated with data to clip
+        :param data_to_clip: for example, vicon data
+        :param data_reference: data to which the data to clip will be interpolated
         :param ts_reference: time vector associated with reference data
+        :param ts_to_clip: time vector associated with data to clip
         :return: all of the above parameters after clipping/interpolation
         """
 
-        if ts_to_clip[0] < ts_reference[0]:
-            ts_reference -= ts_to_clip[0]
-            ts_to_clip -= ts_to_clip[0]
-            indexer = ts_to_clip >= ts_reference[0]
-            ts_to_clip = ts_to_clip[indexer]
-            reference_data = reference_data[..., indexer]
+        if ts_reference[0] < ts_to_clip[0]:
+            ts_to_clip -= ts_reference[0]
+            ts_reference -= ts_reference[0]
+            indexer = ts_reference >= ts_to_clip[0]
+            ts_reference = ts_reference[indexer]
+            data_reference = data_reference[..., indexer]
 
-        if ts_to_clip[-1] > ts_reference[-1]:
-            indexer = ts_to_clip <= ts_reference[-1]
-            ts_to_clip = ts_to_clip[indexer]
-            reference_data = reference_data[..., indexer]
+        if ts_reference[-1] > ts_to_clip[-1]:
+            indexer = ts_reference <= ts_to_clip[-1]
+            ts_reference = ts_reference[indexer]
+            data_reference = data_reference[..., indexer]
 
-        interp_func = interp1d(ts_reference, data_to_clip)
-        clipped = interp_func(ts_to_clip)
-        ts_reference = ts_to_clip
+        interp_func = interp1d(ts_to_clip, data_to_clip)
+        clipped = interp_func(ts_reference)
+        ts_to_clip = ts_reference
 
-        return clipped, reference_data, ts_to_clip, ts_reference
+        return clipped, data_reference, ts_reference, ts_to_clip

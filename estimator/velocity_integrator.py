@@ -1,42 +1,41 @@
-"""Quaternion Integrator
-
-State estimator which integrates gyro data and keeps track of the state
+"""
+Integrates gyro data and keeps track of the orientation of the robot
 """
 
 import numpy as np
 
-from estimator.data import utilities
-from estimator.data.datamaker import DataMaker
-import estimator.data.trajectoryplanner
 from estimator.state_estimator import StateEstimator
 from estimator.quaternions import Quaternions
 
 
 class VelocityIntegrator(StateEstimator):
+    """
+    Considers only gyro data to try to keep track of the orientation of the robot.
+    Gyro's are generally quite accurate, but drift in the signal get's integrated,
+    exacerbating the estimation error.
 
-    state_dof = 6
+    :ivar quats: list of quaternions with the same length as the number of timesteps
+    """
 
     def __init__(self, source):
         super().__init__(source)
         self.quats = []
-        self.acc_calc = np.zeros((3, self.num_data))
-        self.g_quat = Quaternions([0, 0, 0, 1])
 
     def estimate_state(self):
+        """
+        Uses data provided by the source to estimate the state history of the filter
+        After calling this function, the state and rotation history will be defined
+        """
+
         self.rots = np.zeros((3, 3, self.num_data))
-        self._store_next(Quaternions([1, 0, 0, 0]))
+        self.quats.append(Quaternions([1, 0, 0, 0]))
 
         for i in range(0, self.num_data - 1):
             dt = self.ts_imu[i + 1] - self.ts_imu[i]
             self._filter_next(self.vel_data[:, i], dt)
 
-    def _filter_next(self, w, dt):
-        qd = Quaternions.from_vectors(w * dt)
-        q_next = qd.q_multiply(self.quats[-1])
-        self._store_next(q_next)
-
-    def _store_next(self, q_next):
+    def _filter_next(self, velocity, dt):
+        quat_delta = Quaternions.from_vectors(velocity * dt)
         i = len(self.quats)
-        self.quats.append(q_next)
-        self.rots[..., i] = q_next.to_rotation_matrix()
-        self.acc_calc[:, i] = q_next.q_multiply(self.g_quat).q_multiply(q_next.inverse()).array[1:]
+        self.quats.append(quat_delta.q_multiply(self.quats[-1]))
+        self.rots[..., i] = self.quats[-1].to_rotation_matrix()

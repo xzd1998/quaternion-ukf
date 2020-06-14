@@ -8,5 +8,5 @@ test:
 	@python -m unittest discover $(TEST)
 
 lint:
-	@pylint **/*.py
+	@pylint $(MODULE) 
 
