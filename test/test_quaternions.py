@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from estimator.quaternions import Quaternions, ZeroQuaternionException
+from estimator.quaternions import Quaternions
 
 
 class QuaternionsTest(unittest.TestCase):
@@ -20,12 +20,8 @@ class QuaternionsTest(unittest.TestCase):
         qs = []
         for i in range(n):
             np.random.seed(i)
-            qs.append(Quaternions(np.random.randn(Quaternions.ndim)))
+            qs.append(Quaternions(np.random.randn(Quaternions.NDIM)))
         return tuple(qs)
-
-    def test_zero_quaternion_input(self):
-        invalid = np.zeros(Quaternions.ndim)
-        self.assertRaises(ZeroQuaternionException, Quaternions, invalid)
 
     def test_invalid_dim_input(self):
         invalid = np.ones(5)
@@ -74,9 +70,9 @@ class QuaternionsTest(unittest.TestCase):
 
     def test_find_mean_near_pi(self):
         dist = 0.1
-        q_near = Quaternions.from_vectors([-np.pi + dist, 0, 0])
-        q_pi = Quaternions.from_vectors([np.pi, 0, 0])
-        q_expected = Quaternions.from_vectors([-np.pi + dist / 2, 0, 0])
+        q_near = Quaternions.from_vectors(np.array([-np.pi + dist, 0, 0]))
+        q_pi = Quaternions.from_vectors(np.array([np.pi, 0, 0]))
+        q_expected = Quaternions.from_vectors(np.array([-np.pi + dist / 2, 0, 0]))
         q_0 = QuaternionsTest.get_random_qs(1)[0]
         qs = Quaternions.from_quaternions(q_near, q_pi)
         self.assertEqual(qs.find_q_mean(q_0), q_expected)

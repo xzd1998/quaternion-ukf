@@ -6,12 +6,14 @@ See the README for why the yaw can't be calculated directly.
 To run the estimators with toy data, you can use the following:
 
 .. code-block:: bash
-   python3 demo.py
+
+   python -m estimator
 
 To run the estimators on real data from an IMU, specify a dataset number from 1 to 3:
 
 .. code-block:: bash
-   python3 demo.py --dataset-num 1
+
+   python -m estimator --dataset-num 1
 
 These datasets were provided by the instructors as part of the project. The output of
 the demo are the graphs of roll, pitch, and yaw, and the RMSE of each angle is printed
@@ -24,6 +26,7 @@ This is evident when you look at the results of running the estimators on the to
 which has the following output
 
 .. code-block::
+
    RollPitchCalculator RMSE: [0.0019, 0.0024, 0.9610]
    VelocityIntegrator RMSE:  [0.6236, 0.4494, 0.3113]
    QuaternionUkf RMSE:       [0.0013, 0.0017, 0.1045]
