@@ -90,7 +90,6 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">estimator</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="estimator.data.html">estimator.data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="estimator.sandbox.html">estimator.sandbox</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -189,15 +188,6 @@
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.trajectoryplanner">estimator.data.trajectoryplanner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data.utilities">estimator.data.utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="estimator.data.html#module-estimator.data">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="estimator.sandbox.html">estimator.sandbox</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="estimator.sandbox.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="estimator.sandbox.html#module-estimator.sandbox.quaternionukf3">estimator.sandbox.quaternionukf3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="estimator.sandbox.html#module-estimator.sandbox.vector_integrator">estimator.sandbox.vector_integrator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="estimator.sandbox.html#module-estimator.sandbox.vectorukf3">estimator.sandbox.vectorukf3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="estimator.sandbox.html#module-estimator.sandbox.vectorukf6">estimator.sandbox.vectorukf6</a></li>
-<li class="toctree-l2"><a class="reference internal" href="estimator.sandbox.html#module-estimator.sandbox">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -489,15 +479,14 @@ After calling this function, the state and rotation history will be defined</p>
 </div>
 <div class="section" id="module-estimator.roll_pitch_calculator">
 <span id="estimator-roll-pitch-calculator"></span><h2>estimator.roll_pitch_calculator<a class="headerlink" href="#module-estimator.roll_pitch_calculator" title="Permalink to this headline">¶</a></h2>
+<p>Estimates roll and pitch based on accelerometer data, which are the only angles
+that can be calculated from only the accelerometer.</p>
 <dl class="py class">
 <dt id="estimator.roll_pitch_calculator.RollPitchCalculator">
 <em class="property">class </em><code class="sig-name descname">RollPitchCalculator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/roll_pitch_calculator.html#RollPitchCalculator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.roll_pitch_calculator.RollPitchCalculator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.state_estimator.StateEstimator" title="estimator.state_estimator.StateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.state_estimator.StateEstimator</span></code></a></p>
-<dl class="py attribute">
-<dt id="estimator.roll_pitch_calculator.RollPitchCalculator.N_DIM">
-<code class="sig-name descname">N_DIM</code><em class="property"> = 6</em><a class="headerlink" href="#estimator.roll_pitch_calculator.RollPitchCalculator.N_DIM" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<p>Simplest implementation of an estimator - no integration,
+just directly calculates roll and pitch at each timestep</p>
 <dl class="py method">
 <dt id="estimator.roll_pitch_calculator.RollPitchCalculator.estimate_state">
 <code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/roll_pitch_calculator.html#RollPitchCalculator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.roll_pitch_calculator.RollPitchCalculator.estimate_state" title="Permalink to this definition">¶</a></dt>
@@ -565,23 +554,25 @@ After calling this function, the state and rotation history will be defined</p>
 </div>
 <div class="section" id="module-estimator.velocity_integrator">
 <span id="estimator-velocity-integrator"></span><h2>estimator.velocity_integrator<a class="headerlink" href="#module-estimator.velocity_integrator" title="Permalink to this headline">¶</a></h2>
-<p>Quaternion Integrator</p>
-<p>State estimator which integrates gyro data and keeps track of the state</p>
+<p>Integrates gyro data and keeps track of the orientation of the robot</p>
 <dl class="py class">
 <dt id="estimator.velocity_integrator.VelocityIntegrator">
 <em class="property">class </em><code class="sig-name descname">VelocityIntegrator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/velocity_integrator.html#VelocityIntegrator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.velocity_integrator.VelocityIntegrator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.state_estimator.StateEstimator" title="estimator.state_estimator.StateEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.state_estimator.StateEstimator</span></code></a></p>
+<p>Considers only gyro data to try to keep track of the orientation of the robot.
+Gyro’s are generally quite accurate, but drift in the signal get’s integrated,
+exacerbating the estimation error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><p><strong>quats</strong> – list of quaternions with the same length as the number of timesteps</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="estimator.velocity_integrator.VelocityIntegrator.estimate_state">
 <code class="sig-name descname">estimate_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/velocity_integrator.html#VelocityIntegrator.estimate_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.velocity_integrator.VelocityIntegrator.estimate_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Uses data provided by the source to estimate the state history of the filter
 After calling this function, the state and rotation history will be defined</p>
 </dd></dl>
-
-<dl class="py attribute">
-<dt id="estimator.velocity_integrator.VelocityIntegrator.state_dof">
-<code class="sig-name descname">state_dof</code><em class="property"> = 6</em><a class="headerlink" href="#estimator.velocity_integrator.VelocityIntegrator.state_dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 

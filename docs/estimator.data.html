@@ -35,7 +35,6 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="estimator.sandbox" href="estimator.sandbox.html" />
     <link rel="prev" title="estimator" href="estimator.html" /> 
 </head>
 
@@ -90,7 +89,6 @@
 <li class="toctree-l2 current"><a class="reference internal" href="estimator.html">estimator</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="estimator.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">estimator.data</a></li>
-<li class="toctree-l4"><a class="reference internal" href="estimator.sandbox.html">estimator.sandbox</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="estimator.html#submodules">Submodules</a></li>
@@ -180,24 +178,76 @@
 </div>
 <div class="section" id="module-estimator.data.datamaker">
 <span id="estimator-data-datamaker"></span><h2>estimator.data.datamaker<a class="headerlink" href="#module-estimator.data.datamaker" title="Permalink to this headline">¶</a></h2>
+<p>Builds toy data for testing the various estimator implementations. This is useful
+because it’s difficult to know if your model for process and measurement noise is
+correct, but when you make the data, you determine the model and, therefore, reduce
+your unknowns when debugging the UKF implementation.</p>
+<p>In addition, you can build your own trajectories to test particular points that
+may demonstrate instabilities in your estimation. For me, this included multiples
+of <code class="code docutils literal notranslate"><span class="pre">pi/2</span></code>.</p>
+<p>To build some toy data, a trajectory planner needs to be supplied, which the data
+maker will then use to back calculate what the gyro and accelerometer readings
+_would_ be for the planned trajectory. For more on how to define a trajectory
+planner, see <span class="xref std std-doc">./trajectoryplanner</span>.</p>
+<p>Here’s an example to instantiate a <code class="code docutils literal notranslate"><span class="pre">DataMaker</span></code> and plot the orientation data
+that it makes:</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">planner</span> <span class="o">=</span> <span class="n">SimplePlanner</span><span class="p">()</span>
+<span class="n">maker</span> <span class="o">=</span> <span class="n">DataMaker</span><span class="p">(</span><span class="n">planner</span><span class="p">)</span>
+<span class="n">ang_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Roll&quot;</span><span class="p">,</span> <span class="s2">&quot;Pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;Yaw&quot;</span><span class="p">]</span>
+<span class="n">utilities</span><span class="o">.</span><span class="n">plot_data_comparison</span><span class="p">(</span>
+    <span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span>
+    <span class="n">ang_labels</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">maker</span><span class="o">.</span><span class="n">ts_data</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">maker</span><span class="o">.</span><span class="n">angles</span><span class="p">]</span>
+ <span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
 <dl class="py class">
 <dt id="estimator.data.datamaker.DataMaker">
 <em class="property">class </em><code class="sig-name descname">DataMaker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">planner</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/datamaker.html#DataMaker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.datamaker.DataMaker" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.data.datasource.DataSource" title="estimator.data.datasource.DataSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.data.datasource.DataSource</span></code></a></p>
 <p>Creates test data from a pre-planned trajectory</p>
+<dl class="py method">
+<dt id="estimator.data.datamaker.DataMaker.plot_data">
+<code class="sig-name descname">plot_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/datamaker.html#DataMaker.plot_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.datamaker.DataMaker.plot_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the data made by this DataMaker</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
 <div class="section" id="module-estimator.data.datasource">
 <span id="estimator-data-datasource"></span><h2>estimator.data.datasource<a class="headerlink" href="#module-estimator.data.datasource" title="Permalink to this headline">¶</a></h2>
+<p>Defines parent class for where the estimators will pull their data from to perform state
+estimation.</p>
 <dl class="py class">
 <dt id="estimator.data.datasource.DataSource">
 <em class="property">class </em><code class="sig-name descname">DataSource</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts_vicon</span></em>, <em class="sig-param"><span class="n">rots_vicon</span></em>, <em class="sig-param"><span class="n">ts_imu</span></em>, <em class="sig-param"><span class="n">acc_data</span></em>, <em class="sig-param"><span class="n">vel_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/datasource.html#DataSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.datasource.DataSource" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Parent class for sources of data either real (from a <cite>DataStore</cite>) or made up (from a <cite>DataMaker</cite>)</p>
+<p>Parent class for sources of data either real (from a <cite>DataStore</cite>) or made up
+(from a <cite>DataMaker</cite>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts_vicon</strong> – time vector associated with truth data from vicon</p></li>
+<li><p><strong>rots_vicon</strong> – rotation matrices from vicon (rotation of robot frame w.r.t. world frame)</p></li>
+<li><p><a class="reference internal" href="estimator.html#estimator.state_estimator.StateEstimator.ts_imu" title="estimator.state_estimator.StateEstimator.ts_imu"><strong>ts_imu</strong></a> – time vector associated with imu data</p></li>
+<li><p><a class="reference internal" href="estimator.html#estimator.state_estimator.StateEstimator.acc_data" title="estimator.state_estimator.StateEstimator.acc_data"><strong>acc_data</strong></a> – accelerometer data already normalized to be in units of m/s**2</p></li>
+<li><p><a class="reference internal" href="estimator.html#estimator.state_estimator.StateEstimator.vel_data" title="estimator.state_estimator.StateEstimator.vel_data"><strong>vel_data</strong></a> – gyro data already normalized to be in units of rad/s</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
-<dt id="estimator.data.datasource.DataSource.angles">
-<code class="sig-name descname">angles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/datasource.html#DataSource.angles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.datasource.DataSource.angles" title="Permalink to this definition">¶</a></dt>
+<dt id="estimator.data.datasource.DataSource.angles_vicon">
+<code class="sig-name descname">angles_vicon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/datasource.html#DataSource.angles_vicon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.datasource.DataSource.angles_vicon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tuple of estimated roll, pitch, and yaw angles</p>
 </dd></dl>
 
@@ -206,11 +256,27 @@
 </div>
 <div class="section" id="module-estimator.data.datastore">
 <span id="estimator-data-datastore"></span><h2>estimator.data.datastore<a class="headerlink" href="#module-estimator.data.datastore" title="Permalink to this headline">¶</a></h2>
+<p>In contrast to <code class="code docutils literal notranslate"><span class="pre">DataMaker</span></code>, <code class="code docutils literal notranslate"><span class="pre">DataStore</span></code> loads real sensor data.</p>
 <dl class="py class">
 <dt id="estimator.data.datastore.DataStore">
 <em class="property">class </em><code class="sig-name descname">DataStore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_number</span></em>, <em class="sig-param"><span class="n">path_to_data</span><span class="o">=</span><span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">coefficients</span><span class="o">=</span><span class="default_value">array([- 0.0936, - 0.0944, 0.0945, 0.0155, 0.0158, 0.0161])</span></em>, <em class="sig-param"><span class="n">intercepts</span><span class="o">=</span><span class="default_value">array([47.9, 47.2, - 47.4, - 5.75, - 5.75, - 5.95])</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/datastore.html#DataStore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.datastore.DataStore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.data.datasource.DataSource" title="estimator.data.datasource.DataSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.data.datasource.DataSource</span></code></a></p>
-<p>Loads data from an existing source of matching vicon and imu data</p>
+<p>Loads data from an existing source of matching vicon and imu data. If the intention is
+to calibrate the data, <code class="code docutils literal notranslate"><span class="pre">coefficients</span></code> and <code class="code docutils literal notranslate"><span class="pre">intercepts</span></code> should be specified
+as <code class="code docutils literal notranslate"><span class="pre">None</span></code>, otherwise the <code class="code docutils literal notranslate"><span class="pre">DataSource</span></code> will automatically calibrate the data
+using the static members defined in <span class="xref std std-doc">./trainer</span></p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset_number</strong> – corresponding to the numbers in the filenames</p></li>
+<li><p><strong>path_to_data</strong> – path to the directory of this package</p></li>
+<li><p><strong>coefficients</strong> – linear coefficients for imu data
+may be set to none to leave data uncalibrated</p></li>
+<li><p><strong>intercepts</strong> – biases for imu data
+may be set to none to leave data uncalibrated</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -288,16 +354,16 @@ with two static members defined such that:</p>
 
 <dl class="py method">
 <dt id="estimator.data.trainer.Trainer.clip_data">
-<em class="property">static </em><code class="sig-name descname">clip_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_to_clip</span></em>, <em class="sig-param"><span class="n">reference_data</span></em>, <em class="sig-param"><span class="n">ts_to_clip</span></em>, <em class="sig-param"><span class="n">ts_reference</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trainer.html#Trainer.clip_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trainer.Trainer.clip_data" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">clip_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_to_clip</span></em>, <em class="sig-param"><span class="n">data_reference</span></em>, <em class="sig-param"><span class="n">ts_reference</span></em>, <em class="sig-param"><span class="n">ts_to_clip</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trainer.html#Trainer.clip_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trainer.Trainer.clip_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Lines up both time vectors and interpolates the data to clip to the raw data
 because there’s no guarantee that the two time vectors are the same</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data_to_clip</strong> – for example, IMU data</p></li>
-<li><p><strong>reference_data</strong> – data to which the data to clip will be interpolated</p></li>
-<li><p><strong>ts_to_clip</strong> – time vector associated with data to clip</p></li>
+<li><p><strong>data_to_clip</strong> – for example, vicon data</p></li>
+<li><p><strong>data_reference</strong> – data to which the data to clip will be interpolated</p></li>
 <li><p><strong>ts_reference</strong> – time vector associated with reference data</p></li>
+<li><p><strong>ts_to_clip</strong> – time vector associated with data to clip</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -333,112 +399,228 @@ because there’s no guarantee that the two time vectors are the same</p>
 </div>
 <div class="section" id="module-estimator.data.trajectoryplanner">
 <span id="estimator-data-trajectoryplanner"></span><h2>estimator.data.trajectoryplanner<a class="headerlink" href="#module-estimator.data.trajectoryplanner" title="Permalink to this headline">¶</a></h2>
+<p>Holds a few different types of trajectory planners which are useful for testing different
+aspects of the estimator.</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">TrajectoryPlanner</span></code>: parent class for planners which isn’t instantiated directly</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">SimplePlanner</span></code>: plans a one-directional, minimum force trajectory from zero to
+some other orientation</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">RoundTripPlanner</span></code>: plans a two-directional, minimum force trajectory from zero to
+some other orientation back to zero</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">StationaryPlanner</span></code>: plans a zero-movement trajectory</p></li>
+</ul>
 <dl class="py class">
 <dt id="estimator.data.trajectoryplanner.RoundTripPlanner">
 <em class="property">class </em><code class="sig-name descname">RoundTripPlanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">acc_magnitude</span><span class="o">=</span><span class="default_value">0.0005</span></em>, <em class="sig-param"><span class="n">noise_stddev</span><span class="o">=</span><span class="default_value">0.02</span></em>, <em class="sig-param"><span class="n">drift_stddev</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#RoundTripPlanner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.RoundTripPlanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.data.trajectoryplanner.TrajectoryPlanner" title="estimator.data.trajectoryplanner.TrajectoryPlanner"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.data.trajectoryplanner.TrajectoryPlanner</span></code></a></p>
+<p>Plans a two-directional, minimum force trajectory from zero to some other orientation
+back to zero</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="estimator.data.trajectoryplanner.SimplePlanner">
 <em class="property">class </em><code class="sig-name descname">SimplePlanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">noise_stddev</span><span class="o">=</span><span class="default_value">0.02</span></em>, <em class="sig-param"><span class="n">drift_stddev</span><span class="o">=</span><span class="default_value">0.002</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#SimplePlanner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.SimplePlanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.data.trajectoryplanner.TrajectoryPlanner" title="estimator.data.trajectoryplanner.TrajectoryPlanner"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.data.trajectoryplanner.TrajectoryPlanner</span></code></a></p>
+<p>Plans a one-directional, minimum force trajectory from zero to some other orientation</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="estimator.data.trajectoryplanner.StationaryPlanner">
 <em class="property">class </em><code class="sig-name descname">StationaryPlanner</code><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#StationaryPlanner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.StationaryPlanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#estimator.data.trajectoryplanner.TrajectoryPlanner" title="estimator.data.trajectoryplanner.TrajectoryPlanner"><code class="xref py py-class docutils literal notranslate"><span class="pre">estimator.data.trajectoryplanner.TrajectoryPlanner</span></code></a></p>
+<p>Plans a zero-movement trajectory</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="estimator.data.trajectoryplanner.TrajectoryPlanner">
 <em class="property">class </em><code class="sig-name descname">TrajectoryPlanner</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">duration</span></em>, <em class="sig-param"><span class="n">dt</span></em>, <em class="sig-param"><span class="n">noise_stddev</span></em>, <em class="sig-param"><span class="n">drift_stddev</span></em>, <em class="sig-param"><span class="n">bounds</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">acc_calculators</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#TrajectoryPlanner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.TrajectoryPlanner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parent class for trajectory planners which defines the interface to plan minimum force
+trajectories among different orientations</p>
+<p>Note on the noise models: I decided to not apply any drift to the accelerometer data
+because I found that most helpful when testing, but <code class="code docutils literal notranslate"><span class="pre">noise_stddev</span></code> and
+<code class="code docutils literal notranslate"><span class="pre">drift_stddev</span></code> don’t _have_ to be applied to accelerometer and gyro data,
+respectively</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> – of the data sample in seconds</p></li>
+<li><p><strong>dt</strong> – time increment of the data</p></li>
+<li><p><strong>noise_stddev</strong> – standard deviation of the white noise to add to accelerometer data</p></li>
+<li><p><strong>drift_stddev</strong> – standard deviation of the brownian motion to add to gyro data</p></li>
+<li><p><strong>bounds</strong> – time boundaries of the format [start, end), in seconds, which delineate
+which time segments apply to which acceleration calculation</p></li>
+<li><p><strong>acc_calculators</strong> – functions that, given no arguments, tell the trajectory planner
+what acceleration to use</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="estimator.data.trajectoryplanner.TrajectoryPlanner.decrementer">
-<em class="property">static </em><code class="sig-name descname">decrementer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#TrajectoryPlanner.decrementer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.TrajectoryPlanner.decrementer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">static </em><code class="sig-name descname">decrementer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">amount</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#TrajectoryPlanner.decrementer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.TrajectoryPlanner.decrementer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accelration calculator that decrements by some amount</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="estimator.data.trajectoryplanner.TrajectoryPlanner.get_calculator">
 <code class="sig-name descname">get_calculator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bound</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#TrajectoryPlanner.get_calculator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.TrajectoryPlanner.get_calculator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns the active acceleration calculator for a given time boundary</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="estimator.data.trajectoryplanner.TrajectoryPlanner.incrementer">
-<em class="property">static </em><code class="sig-name descname">incrementer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#TrajectoryPlanner.incrementer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.TrajectoryPlanner.incrementer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">static </em><code class="sig-name descname">incrementer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">amount</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trajectoryplanner.html#TrajectoryPlanner.incrementer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trajectoryplanner.TrajectoryPlanner.incrementer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accelration calculator that increments by some amount</p>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-estimator.data.utilities">
 <span id="estimator-data-utilities"></span><h2>estimator.data.utilities<a class="headerlink" href="#module-estimator.data.utilities" title="Permalink to this headline">¶</a></h2>
+<p>Functions that don’t fit nicely into any one class defined in the <strong>estimator</strong> module.
+Most are conversions between different types of rotations.</p>
 <dl class="py function">
 <dt id="estimator.data.utilities.accs_to_roll_pitch">
 <code class="sig-name descname">accs_to_roll_pitch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">accs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#accs_to_roll_pitch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.accs_to_roll_pitch" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculates roll and pitch from accelerometer data assuming ZYX convention</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>accs</strong> – (3, N), N &gt;= 0 numpy array of accelerometer data</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>corresponding arrays of roll and pitch angles</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.angles_to_rots_xyz">
 <code class="sig-name descname">angles_to_rots_xyz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roll</span></em>, <em class="sig-param"><span class="n">pitch</span></em>, <em class="sig-param"><span class="n">yaw</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#angles_to_rots_xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.angles_to_rots_xyz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts XYZ Euler angles to (3, 3, N) array of rotation matrices</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.angles_to_rots_zyx">
 <code class="sig-name descname">angles_to_rots_zyx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roll</span></em>, <em class="sig-param"><span class="n">pitch</span></em>, <em class="sig-param"><span class="n">yaw</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#angles_to_rots_zyx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.angles_to_rots_zyx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="estimator.data.utilities.make_angles_continuous">
-<code class="sig-name descname">make_angles_continuous</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">angles</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#make_angles_continuous"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.make_angles_continuous" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts ZYX Euler angles to (3, 3, N) array of rotation matrices</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.moving_average">
-<code class="sig-name descname">moving_average</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">n</span><span class="o">=</span><span class="default_value">9</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#moving_average"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.moving_average" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">moving_average</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">9</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#moving_average"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.moving_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter input data with moving average</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – data to filter</p></li>
+<li><p><strong>num</strong> – length of moving average window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>averaged data</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.normalize_vectors">
 <code class="sig-name descname">normalize_vectors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vectors</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#normalize_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.normalize_vectors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Normalizes vectors row-wise, ignoring vectors of all zeros.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.plot_data_comparison">
-<code class="sig-name descname">plot_data_comparison</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_labels</span></em>, <em class="sig-param"><span class="n">y_labels</span></em>, <em class="sig-param"><span class="n">ts</span></em>, <em class="sig-param"><span class="n">datasets</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#plot_data_comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.plot_data_comparison" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">plot_data_comparison</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_labels</span></em>, <em class="sig-param"><span class="n">y_labels</span></em>, <em class="sig-param"><span class="n">time_vectors</span></em>, <em class="sig-param"><span class="n">datasets</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#plot_data_comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.plot_data_comparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots overlapping time series datasets together for comparison</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_labels</strong> – labels for the legend for each dataset</p></li>
+<li><p><strong>y_labels</strong> – labels for the y-axis of each plot</p></li>
+<li><p><strong>time_vectors</strong> – time vector associated with each dataset</p></li>
+<li><p><strong>datasets</strong> – data to plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.rots_to_accs">
 <code class="sig-name descname">rots_to_accs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em>, <em class="sig-param"><span class="n">noise</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_accs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_accs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts rotation matrices to the expected accelerometer data that would be gathered
+if the robot was in the provided series of rotations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rots</strong> – (3, 3, N), N &gt; 1 numpy array of rotation matrices</p></li>
+<li><p><strong>noise</strong> – to apply to the accelerometer estimate, used when making toy data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>expected accelerometer data</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.rots_to_angles_xyz">
 <code class="sig-name descname">rots_to_angles_xyz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_angles_xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_angles_xyz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts rotation matrices of shape (3, 3, N), N &gt;= 0, to roll, pitch, and yaw
+Euler angles using the XYZ convention</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.rots_to_angles_zyx">
 <code class="sig-name descname">rots_to_angles_zyx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_angles_zyx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_angles_zyx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts rotation matrices of shape (3, 3, N), N &gt;= 0, to roll, pitch, and yaw
+Euler angles using the ZYX convention</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.rots_to_vectors">
 <code class="sig-name descname">rots_to_vectors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_vectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_vectors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts array of rotation matrices to rotation vectors</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raw</strong> – (3, 3, N), N &gt;= 0 numpy array of rotation matrices</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>corresponding rotation vectors</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.rots_to_vels">
-<code class="sig-name descname">rots_to_vels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em>, <em class="sig-param"><span class="n">ts</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_vels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_vels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">rots_to_vels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em>, <em class="sig-param"><span class="n">times</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_vels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_vels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts rotation matrices over time to angular velocities using the ZYX convention</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rots</strong> – (3, 3, N), N &gt; 1 numpy array of rotation matrices</p></li>
+<li><p><strong>times</strong> – time vector of length N associated with rotation matrices</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>roll, pitch, and yaw velocities</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.vectors_to_rots">
 <code class="sig-name descname">vectors_to_rots</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#vectors_to_rots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.vectors_to_rots" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Converts array of rotation vectors to rotation matrices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raw</strong> – (3, N), N &gt;= 0 numpy array of rotation vectors</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>corresponding rotation matrices</p>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="module-estimator.data">
@@ -453,8 +635,6 @@ because there’s no guarantee that the two time vectors are the same</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="estimator.sandbox.html" class="btn btn-neutral float-right" title="estimator.sandbox" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="estimator.html" class="btn btn-neutral float-left" title="estimator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

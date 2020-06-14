@@ -148,11 +148,42 @@
            <div itemprop="articleBody">
             
   <h1>Source code for estimator.data.datamaker</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Builds toy data for testing the various estimator implementations. This is useful</span>
+<span class="sd">because it&#39;s difficult to know if your model for process and measurement noise is</span>
+<span class="sd">correct, but when you make the data, you determine the model and, therefore, reduce</span>
+<span class="sd">your unknowns when debugging the UKF implementation.</span>
+
+<span class="sd">In addition, you can build your own trajectories to test particular points that</span>
+<span class="sd">may demonstrate instabilities in your estimation. For me, this included multiples</span>
+<span class="sd">of :code:`pi/2`.</span>
+
+<span class="sd">To build some toy data, a trajectory planner needs to be supplied, which the data</span>
+<span class="sd">maker will then use to back calculate what the gyro and accelerometer readings</span>
+<span class="sd">_would_ be for the planned trajectory. For more on how to define a trajectory</span>
+<span class="sd">planner, see :doc:`./trajectoryplanner`.</span>
+
+<span class="sd">Here&#39;s an example to instantiate a :code:`DataMaker` and plot the orientation data</span>
+<span class="sd">that it makes:</span>
+
+<span class="sd">.. code-block::</span>
+<span class="sd">   :linenos:</span>
+
+<span class="sd">   planner = SimplePlanner()</span>
+<span class="sd">   maker = DataMaker(planner)</span>
+<span class="sd">   ang_labels = [&quot;Roll&quot;, &quot;Pitch&quot;, &quot;Yaw&quot;]</span>
+<span class="sd">   utilities.plot_data_comparison(</span>
+<span class="sd">       [&quot;data&quot;],</span>
+<span class="sd">       ang_labels,</span>
+<span class="sd">       [maker.ts_data],</span>
+<span class="sd">       [maker.angles]</span>
+<span class="sd">    )</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">estimator.data.datasource</span> <span class="k">import</span> <span class="n">DataSource</span>
 <span class="kn">from</span> <span class="nn">estimator.data</span> <span class="k">import</span> <span class="n">utilities</span>
-<span class="kn">from</span> <span class="nn">estimator.data.trajectoryplanner</span> <span class="k">import</span> <span class="n">SimplePlanner</span>
 
 
 <div class="viewcode-block" id="DataMaker"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datamaker.DataMaker">[docs]</a><span class="k">class</span> <span class="nc">DataMaker</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
@@ -166,40 +197,45 @@
         <span class="k">if</span> <span class="n">planner</span><span class="o">.</span><span class="n">duration</span> <span class="o">&lt;</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Total time can&#39;t be less than the increment&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">angs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">vels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">accs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">ts_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
+        <span class="n">num_data</span> <span class="o">=</span> <span class="n">ts_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">angs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">vels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">accs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_data</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
         <span class="k">def</span> <span class="nf">integrate</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
             <span class="n">vels</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">accs</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">*</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="n">angs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">angs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">vels</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">vels</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">*</span> <span class="n">planner</span><span class="o">.</span><span class="n">dt</span> <span class="o">/</span> <span class="mi">2</span>
 
-        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ts_data</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
             <span class="k">for</span> <span class="n">bound</span> <span class="ow">in</span> <span class="n">planner</span><span class="o">.</span><span class="n">bounds</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="n">bound</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
                     <span class="n">calculator</span> <span class="o">=</span> <span class="n">planner</span><span class="o">.</span><span class="n">get_calculator</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
                     <span class="n">accs</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculator</span><span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
             <span class="n">integrate</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">vectors</span> <span class="o">=</span> <span class="n">angs</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">ang_data</span> <span class="o">=</span> <span class="n">angs</span><span class="o">.</span><span class="n">T</span>
         <span class="n">vel_data</span> <span class="o">=</span> <span class="n">vels</span><span class="o">.</span><span class="n">T</span>
         <span class="n">vel_data</span> <span class="o">+=</span> <span class="n">planner</span><span class="o">.</span><span class="n">drift</span>
 
         <span class="c1"># Rotation of the robot frame with respect to the global frame</span>
-        <span class="n">rots_vicon</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">vectors_to_rots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vectors</span><span class="p">)</span>
+        <span class="n">rots_vicon</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">vectors_to_rots</span><span class="p">(</span><span class="n">ang_data</span><span class="p">)</span>
         <span class="n">acc_data</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">rots_to_accs</span><span class="p">(</span><span class="n">rots_vicon</span><span class="p">,</span> <span class="n">planner</span><span class="o">.</span><span class="n">noise</span><span class="p">)</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">rots_vicon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts</span><span class="p">,</span> <span class="n">acc_data</span><span class="p">,</span> <span class="n">vel_data</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ts_data</span><span class="p">,</span> <span class="n">rots_vicon</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">,</span> <span class="n">acc_data</span><span class="p">,</span> <span class="n">vel_data</span><span class="p">)</span>
 
+<div class="viewcode-block" id="DataMaker.plot_data"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datamaker.DataMaker.plot_data">[docs]</a>    <span class="k">def</span> <span class="nf">plot_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plots the data made by this DataMaker</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">planner</span> <span class="o">=</span> <span class="n">SimplePlanner</span><span class="p">()</span>
-    <span class="n">maker</span> <span class="o">=</span> <span class="n">DataMaker</span><span class="p">(</span><span class="n">planner</span><span class="p">)</span>
-    <span class="n">ang_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;roll&quot;</span><span class="p">,</span> <span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;yaw&quot;</span><span class="p">]</span>
-    <span class="n">vel_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;wx&quot;</span><span class="p">,</span> <span class="s2">&quot;wy&quot;</span><span class="p">,</span> <span class="s2">&quot;wz&quot;</span><span class="p">]</span>
-    <span class="n">utilities</span><span class="o">.</span><span class="n">plot_data_comparison</span><span class="p">([</span><span class="s2">&quot;z-axis&quot;</span><span class="p">],</span> <span class="n">ang_labels</span><span class="p">,</span> <span class="p">[</span><span class="n">maker</span><span class="o">.</span><span class="n">ts</span><span class="p">],</span> <span class="p">[</span><span class="n">maker</span><span class="o">.</span><span class="n">angles</span><span class="p">])</span>
+        <span class="n">ang_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Roll&quot;</span><span class="p">,</span> <span class="s2">&quot;Pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;Yaw&quot;</span><span class="p">]</span>
+        <span class="n">utilities</span><span class="o">.</span><span class="n">plot_data_comparison</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span>
+            <span class="n">ang_labels</span><span class="p">,</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_imu</span><span class="p">],</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">angles_vicon</span><span class="p">]</span>
+        <span class="p">)</span></div></div>
 </pre></div>
 
            </div>

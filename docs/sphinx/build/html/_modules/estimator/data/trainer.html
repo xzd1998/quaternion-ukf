@@ -308,35 +308,35 @@
         <span class="k">return</span> <span class="n">coefficients</span><span class="p">,</span> <span class="n">intercepts</span><span class="p">,</span> <span class="n">coef_determination</span></div>
 
 <div class="viewcode-block" id="Trainer.clip_data"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.clip_data">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">clip_data</span><span class="p">(</span><span class="n">data_to_clip</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">,</span> <span class="n">ts_to_clip</span><span class="p">,</span> <span class="n">ts_reference</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">clip_data</span><span class="p">(</span><span class="n">data_to_clip</span><span class="p">,</span> <span class="n">data_reference</span><span class="p">,</span> <span class="n">ts_reference</span><span class="p">,</span> <span class="n">ts_to_clip</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Lines up both time vectors and interpolates the data to clip to the raw data</span>
 <span class="sd">        because there&#39;s no guarantee that the two time vectors are the same</span>
 
-<span class="sd">        :param data_to_clip: for example, IMU data</span>
-<span class="sd">        :param reference_data: data to which the data to clip will be interpolated</span>
-<span class="sd">        :param ts_to_clip: time vector associated with data to clip</span>
+<span class="sd">        :param data_to_clip: for example, vicon data</span>
+<span class="sd">        :param data_reference: data to which the data to clip will be interpolated</span>
 <span class="sd">        :param ts_reference: time vector associated with reference data</span>
+<span class="sd">        :param ts_to_clip: time vector associated with data to clip</span>
 <span class="sd">        :return: all of the above parameters after clipping/interpolation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="n">ts_reference</span> <span class="o">-=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">ts_to_clip</span> <span class="o">-=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_to_clip</span> <span class="o">&gt;=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">ts_to_clip</span> <span class="o">=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
-            <span class="n">reference_data</span> <span class="o">=</span> <span class="n">reference_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indexer</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">ts_to_clip</span> <span class="o">-=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ts_reference</span> <span class="o">-=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_reference</span> <span class="o">&gt;=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ts_reference</span> <span class="o">=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
+            <span class="n">data_reference</span> <span class="o">=</span> <span class="n">data_reference</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indexer</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ts_reference</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_to_clip</span> <span class="o">&lt;=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">ts_to_clip</span> <span class="o">=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
-            <span class="n">reference_data</span> <span class="o">=</span> <span class="n">reference_data</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indexer</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ts_reference</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">indexer</span> <span class="o">=</span> <span class="n">ts_reference</span> <span class="o">&lt;=</span> <span class="n">ts_to_clip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ts_reference</span> <span class="o">=</span> <span class="n">ts_reference</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
+            <span class="n">data_reference</span> <span class="o">=</span> <span class="n">data_reference</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">indexer</span><span class="p">]</span>
 
-        <span class="n">interp_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">ts_reference</span><span class="p">,</span> <span class="n">data_to_clip</span><span class="p">)</span>
-        <span class="n">clipped</span> <span class="o">=</span> <span class="n">interp_func</span><span class="p">(</span><span class="n">ts_to_clip</span><span class="p">)</span>
-        <span class="n">ts_reference</span> <span class="o">=</span> <span class="n">ts_to_clip</span>
+        <span class="n">interp_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">ts_to_clip</span><span class="p">,</span> <span class="n">data_to_clip</span><span class="p">)</span>
+        <span class="n">clipped</span> <span class="o">=</span> <span class="n">interp_func</span><span class="p">(</span><span class="n">ts_reference</span><span class="p">)</span>
+        <span class="n">ts_to_clip</span> <span class="o">=</span> <span class="n">ts_reference</span>
 
-        <span class="k">return</span> <span class="n">clipped</span><span class="p">,</span> <span class="n">reference_data</span><span class="p">,</span> <span class="n">ts_to_clip</span><span class="p">,</span> <span class="n">ts_reference</span></div></div>
+        <span class="k">return</span> <span class="n">clipped</span><span class="p">,</span> <span class="n">data_reference</span><span class="p">,</span> <span class="n">ts_reference</span><span class="p">,</span> <span class="n">ts_to_clip</span></div></div>
 </pre></div>
 
            </div>

@@ -148,17 +148,28 @@
            <div itemprop="articleBody">
             
   <h1>Source code for estimator.roll_pitch_calculator</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Estimates roll and pitch based on accelerometer data, which are the only angles</span>
+<span class="sd">that can be calculated from only the accelerometer.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">estimator.data</span> <span class="k">import</span> <span class="n">utilities</span>
 <span class="kn">from</span> <span class="nn">estimator.state_estimator</span> <span class="k">import</span> <span class="n">StateEstimator</span>
 
 
 <div class="viewcode-block" id="RollPitchCalculator"><a class="viewcode-back" href="../../estimator.html#estimator.roll_pitch_calculator.RollPitchCalculator">[docs]</a><span class="k">class</span> <span class="nc">RollPitchCalculator</span><span class="p">(</span><span class="n">StateEstimator</span><span class="p">):</span>
-
-    <span class="n">N_DIM</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simplest implementation of an estimator - no integration,</span>
+<span class="sd">    just directly calculates roll and pitch at each timestep</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RollPitchCalculator.estimate_state"><a class="viewcode-back" href="../../estimator.html#estimator.roll_pitch_calculator.RollPitchCalculator.estimate_state">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses data provided by the source to estimate the state history of the filter</span>
+<span class="sd">        After calling this function, the state and rotation history will be defined</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span> <span class="o">=</span> <span class="n">utilities</span><span class="o">.</span><span class="n">accs_to_roll_pitch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acc_data</span><span class="p">)</span>
         <span class="n">yaw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">roll</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>

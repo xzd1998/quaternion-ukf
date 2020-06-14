@@ -148,7 +148,12 @@
            <div itemprop="articleBody">
             
   <h1>Source code for estimator.data.datasource</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">lazy</span> <span class="k">import</span> <span class="n">lazy</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Defines parent class for where the estimators will pull their data from to perform state</span>
+<span class="sd">estimation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">lazy</span> <span class="k">import</span> <span class="n">lazy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">estimator.data</span> <span class="k">import</span> <span class="n">utilities</span>
@@ -156,17 +161,18 @@
 
 <div class="viewcode-block" id="DataSource"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datasource.DataSource">[docs]</a><span class="k">class</span> <span class="nc">DataSource</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Parent class for sources of data either real (from a `DataStore`) or made up (from a `DataMaker`)</span>
+<span class="sd">    Parent class for sources of data either real (from a `DataStore`) or made up</span>
+<span class="sd">    (from a `DataMaker`)</span>
+
+<span class="sd">    :ivar ts_vicon: time vector associated with truth data from vicon</span>
+<span class="sd">    :ivar rots_vicon: rotation matrices from vicon (rotation of robot frame w.r.t. world frame)</span>
+<span class="sd">    :ivar ts_imu: time vector associated with imu data</span>
+<span class="sd">    :ivar acc_data: accelerometer data already normalized to be in units of m/s**2</span>
+<span class="sd">    :ivar vel_data: gyro data already normalized to be in units of rad/s</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_vicon</span><span class="p">,</span> <span class="n">rots_vicon</span><span class="p">,</span> <span class="n">ts_imu</span><span class="p">,</span> <span class="n">acc_data</span><span class="p">,</span> <span class="n">vel_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        All parameters become properties of the class</span>
-<span class="sd">        :param ts_vicon: time vector associated with truth data from vicon</span>
-<span class="sd">        :param rots_vicon: rotation matrices from vicon (rotation of robot frame w.r.t. world frame)</span>
-<span class="sd">        :param ts_imu: time vector associated with imu data</span>
-<span class="sd">        :param acc_data: accelerometer data already normalized to be in units of m/s**2</span>
-<span class="sd">        :param vel_data: gyro data already normalized to be in units of rad/s</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">ts_vicon</span> <span class="o">=</span> <span class="n">ts_vicon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rots_vicon</span> <span class="o">=</span> <span class="n">rots_vicon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ts_imu</span> <span class="o">=</span> <span class="n">ts_imu</span>
@@ -174,8 +180,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">vel_data</span> <span class="o">=</span> <span class="n">vel_data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">imu_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">acc_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vel_data</span><span class="p">))</span>
 
-<div class="viewcode-block" id="DataSource.angles"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datasource.DataSource.angles">[docs]</a>    <span class="nd">@lazy</span>
-    <span class="k">def</span> <span class="nf">angles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DataSource.angles_vicon"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datasource.DataSource.angles_vicon">[docs]</a>    <span class="nd">@lazy</span>
+    <span class="k">def</span> <span class="nf">angles_vicon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tuple of estimated roll, pitch, and yaw angles&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">utilities</span><span class="o">.</span><span class="n">rots_to_angles_zyx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rots_vicon</span><span class="p">)</span></div></div>
 </pre></div>

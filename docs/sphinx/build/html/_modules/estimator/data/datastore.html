@@ -148,7 +148,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for estimator.data.datastore</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">In contrast to :code:`DataMaker`, :code:`DataStore` loads real sensor data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">loadmat</span>
@@ -158,9 +162,19 @@
 <span class="kn">from</span> <span class="nn">estimator.constants</span> <span class="k">import</span> <span class="n">STATE_DOF</span>
 
 
-<div class="viewcode-block" id="DataStore"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datastore.DataStore">[docs]</a><span class="k">class</span> <span class="nc">DataStore</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+<div class="viewcode-block" id="DataStore"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datastore.DataStore">[docs]</a><span class="k">class</span> <span class="nc">DataStore</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>  <span class="c1"># pylint: disable=too-few-public-methods</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Loads data from an existing source of matching vicon and imu data</span>
+<span class="sd">    Loads data from an existing source of matching vicon and imu data. If the intention is</span>
+<span class="sd">    to calibrate the data, :code:`coefficients` and :code:`intercepts` should be specified</span>
+<span class="sd">    as :code:`None`, otherwise the :code:`DataSource` will automatically calibrate the data</span>
+<span class="sd">    using the static members defined in :doc:`./trainer`</span>
+
+<span class="sd">    :ivar dataset_number: corresponding to the numbers in the filenames</span>
+<span class="sd">    :ivar path_to_data: path to the directory of this package</span>
+<span class="sd">    :ivar coefficients: linear coefficients for imu data</span>
+<span class="sd">                         may be set to none to leave data uncalibrated</span>
+<span class="sd">    :ivar intercepts: biases for imu data</span>
+<span class="sd">                       may be set to none to leave data uncalibrated</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -169,14 +183,6 @@
             <span class="n">coefficients</span><span class="o">=</span><span class="n">Trainer</span><span class="o">.</span><span class="n">IMU_COEFFICIENTS</span><span class="p">,</span>
             <span class="n">intercepts</span><span class="o">=</span><span class="n">Trainer</span><span class="o">.</span><span class="n">IMU_INTERCEPTS</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :param dataset_number: corresponding to the numbers in the filenames</span>
-<span class="sd">        :param path_to_data: path to the directory of this package</span>
-<span class="sd">        :param coefficients: linear coefficients for imu data</span>
-<span class="sd">                             may be set to none to leave data uncalibrated</span>
-<span class="sd">        :param intercepts: biases for imu data</span>
-<span class="sd">                           may be set to none to leave data uncalibrated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">coefficients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">coefficients</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">STATE_DOF</span><span class="p">,):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Value coefficients are invalid: expected </span><span class="si">{}</span><span class="s2"> but got </span><span class="si">{}</span><span class="s2">&quot;</span>

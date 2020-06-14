@@ -148,12 +148,21 @@
            <div itemprop="articleBody">
             
   <h1>Source code for estimator.data.utilities</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions that don&#39;t fit nicely into any one class defined in the **estimator** module.</span>
+<span class="sd">Most are conversions between different types of rotations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">scipy.constants</span> <span class="k">import</span> <span class="n">g</span>
 
 
 <div class="viewcode-block" id="rots_to_angles_zyx"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.rots_to_angles_zyx">[docs]</a><span class="k">def</span> <span class="nf">rots_to_angles_zyx</span><span class="p">(</span><span class="n">rots</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts rotation matrices of shape (3, 3, N), N &gt;= 0, to roll, pitch, and yaw</span>
+<span class="sd">    Euler angles using the ZYX convention</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">roll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="n">pitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])))</span>
     <span class="n">yaw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
@@ -162,6 +171,10 @@
 
 
 <div class="viewcode-block" id="rots_to_angles_xyz"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.rots_to_angles_xyz">[docs]</a><span class="k">def</span> <span class="nf">rots_to_angles_xyz</span><span class="p">(</span><span class="n">rots</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts rotation matrices of shape (3, 3, N), N &gt;= 0, to roll, pitch, and yaw</span>
+<span class="sd">    Euler angles using the XYZ convention</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">roll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="n">pitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])))</span>
     <span class="n">yaw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
@@ -169,15 +182,36 @@
     <span class="k">return</span> <span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span></div>
 
 
-<div class="viewcode-block" id="rots_to_vels"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.rots_to_vels">[docs]</a><span class="k">def</span> <span class="nf">rots_to_vels</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
+<div class="viewcode-block" id="rots_to_vels"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.rots_to_vels">[docs]</a><span class="k">def</span> <span class="nf">rots_to_vels</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts rotation matrices over time to angular velocities using the ZYX convention</span>
+<span class="sd">    </span>
+<span class="sd">    :param rots: (3, 3, N), N &gt; 1 numpy array of rotation matrices</span>
+<span class="sd">    :param times: time vector of length N associated with rotation matrices</span>
+<span class="sd">    :return: roll, pitch, and yaw velocities</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">make_angles_continuous</span><span class="p">(</span><span class="n">angles</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">diff</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
+                    <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="n">rots_to_angles_zyx</span><span class="p">(</span><span class="n">rots</span><span class="p">)</span>
     <span class="n">make_angles_continuous</span><span class="p">([</span><span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span><span class="p">])</span>
-    <span class="n">dts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
-    <span class="n">dr</span><span class="p">,</span> <span class="n">dp</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">roll</span><span class="p">)</span> <span class="o">/</span> <span class="n">dts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span> <span class="o">/</span> <span class="n">dts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span> <span class="o">/</span> <span class="n">dts</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">dr</span><span class="p">,</span> <span class="n">dp</span><span class="p">,</span> <span class="n">dy</span><span class="p">)),</span> <span class="n">ts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+    <span class="n">dts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+    <span class="n">droll</span><span class="p">,</span> <span class="n">dpitch</span><span class="p">,</span> <span class="n">dyaw</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">roll</span><span class="p">)</span> <span class="o">/</span> <span class="n">dts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span> <span class="o">/</span> <span class="n">dts</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span> <span class="o">/</span> <span class="n">dts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">droll</span><span class="p">,</span> <span class="n">dpitch</span><span class="p">,</span> <span class="n">dyaw</span><span class="p">)),</span> <span class="n">times</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="rots_to_accs"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.rots_to_accs">[docs]</a><span class="k">def</span> <span class="nf">rots_to_accs</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts rotation matrices to the expected accelerometer data that would be gathered</span>
+<span class="sd">    if the robot was in the provided series of rotations</span>
+
+<span class="sd">    :param rots: (3, 3, N), N &gt; 1 numpy array of rotation matrices</span>
+<span class="sd">    :param noise: to apply to the accelerometer estimate, used when making toy data</span>
+<span class="sd">    :return: expected accelerometer data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rots</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">rots</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
     <span class="n">gravity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">g</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rots</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
@@ -188,53 +222,65 @@
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="make_angles_continuous"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.make_angles_continuous">[docs]</a><span class="k">def</span> <span class="nf">make_angles_continuous</span><span class="p">(</span><span class="n">angles</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">angles</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
-                <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span></div>
+<div class="viewcode-block" id="moving_average"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.moving_average">[docs]</a><span class="k">def</span> <span class="nf">moving_average</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">9</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filter input data with moving average</span>
 
+<span class="sd">    :param data: data to filter</span>
+<span class="sd">    :param num: length of moving average window</span>
+<span class="sd">    :return: averaged data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="moving_average"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.moving_average">[docs]</a><span class="k">def</span> <span class="nf">moving_average</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">9</span><span class="p">):</span>
     <span class="n">averaged</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="n">averaged</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span><span class="p">,</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span>
+        <span class="n">averaged</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="n">num</span><span class="p">,</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">averaged</span></div>
 
 
 <div class="viewcode-block" id="vectors_to_rots"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.vectors_to_rots">[docs]</a><span class="k">def</span> <span class="nf">vectors_to_rots</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts array of rotation vectors to rotation matrices</span>
+
+<span class="sd">    :param raw: (3, N), N &gt;= 0 numpy array of rotation vectors</span>
+<span class="sd">    :return: corresponding rotation matrices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">vecs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">vecs</span> <span class="o">=</span> <span class="n">vecs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">rots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-    <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">vecs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
     <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">indexer</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-    <span class="n">k</span><span class="p">[:,</span> <span class="n">indexer</span><span class="p">]</span> <span class="o">=</span> <span class="n">vecs</span><span class="p">[:,</span> <span class="n">indexer</span><span class="p">]</span> <span class="o">/</span> <span class="n">theta</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
-    <span class="n">kx</span> <span class="o">=</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">ky</span> <span class="o">=</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">kz</span> <span class="o">=</span> <span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">axis</span><span class="p">[:,</span> <span class="n">indexer</span><span class="p">]</span> <span class="o">=</span> <span class="n">vecs</span><span class="p">[:,</span> <span class="n">indexer</span><span class="p">]</span> <span class="o">/</span> <span class="n">theta</span><span class="p">[</span><span class="n">indexer</span><span class="p">]</span>
+    <span class="n">axis_x</span> <span class="o">=</span> <span class="n">axis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">axis_y</span> <span class="o">=</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">axis_z</span> <span class="o">=</span> <span class="n">axis</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 
     <span class="n">c_th</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
     <span class="n">v_th</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
     <span class="n">s_th</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
 
-    <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">kx</span><span class="p">)</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">c_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">kx</span> <span class="o">*</span> <span class="n">ky</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">kz</span> <span class="o">*</span> <span class="n">s_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">kx</span> <span class="o">*</span> <span class="n">kz</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">-</span> <span class="n">ky</span> <span class="o">*</span> <span class="n">s_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">kx</span> <span class="o">*</span> <span class="n">ky</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">-</span> <span class="n">kz</span> <span class="o">*</span> <span class="n">s_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">ky</span><span class="p">)</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">c_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ky</span> <span class="o">*</span> <span class="n">kz</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">kx</span> <span class="o">*</span> <span class="n">s_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">kx</span> <span class="o">*</span> <span class="n">kz</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">ky</span> <span class="o">*</span> <span class="n">s_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ky</span> <span class="o">*</span> <span class="n">kz</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">-</span> <span class="n">kx</span> <span class="o">*</span> <span class="n">s_th</span>
-    <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">kz</span><span class="p">)</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">c_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">axis_x</span><span class="p">)</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">c_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_x</span> <span class="o">*</span> <span class="n">axis_y</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">axis_z</span> <span class="o">*</span> <span class="n">s_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_x</span> <span class="o">*</span> <span class="n">axis_z</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">-</span> <span class="n">axis_y</span> <span class="o">*</span> <span class="n">s_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_x</span> <span class="o">*</span> <span class="n">axis_y</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">-</span> <span class="n">axis_z</span> <span class="o">*</span> <span class="n">s_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">axis_y</span><span class="p">)</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">c_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_y</span> <span class="o">*</span> <span class="n">axis_z</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">axis_x</span> <span class="o">*</span> <span class="n">s_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_x</span> <span class="o">*</span> <span class="n">axis_z</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">axis_y</span> <span class="o">*</span> <span class="n">s_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">axis_y</span> <span class="o">*</span> <span class="n">axis_z</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">-</span> <span class="n">axis_x</span> <span class="o">*</span> <span class="n">s_th</span>
+    <span class="n">rots</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">axis_z</span><span class="p">)</span> <span class="o">*</span> <span class="n">v_th</span> <span class="o">+</span> <span class="n">c_th</span>
 
     <span class="k">return</span> <span class="n">rots</span></div>
 
 
 <div class="viewcode-block" id="rots_to_vectors"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.rots_to_vectors">[docs]</a><span class="k">def</span> <span class="nf">rots_to_vectors</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts array of rotation matrices to rotation vectors</span>
+
+<span class="sd">    :param raw: (3, 3, N), N &gt;= 0 numpy array of rotation matrices</span>
+<span class="sd">    :return: corresponding rotation vectors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">rots</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -253,6 +299,10 @@
 
 
 <div class="viewcode-block" id="angles_to_rots_zyx"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.angles_to_rots_zyx">[docs]</a><span class="k">def</span> <span class="nf">angles_to_rots_zyx</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts ZYX Euler angles to (3, 3, N) array of rotation matrices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">rots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">roll</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
     <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span>
     <span class="n">rots</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span>
@@ -267,6 +317,10 @@
 
 
 <div class="viewcode-block" id="angles_to_rots_xyz"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.angles_to_rots_xyz">[docs]</a><span class="k">def</span> <span class="nf">angles_to_rots_xyz</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts XYZ Euler angles to (3, 3, N) array of rotation matrices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">rots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">roll</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
     <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span>
     <span class="n">rots</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">yaw</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span>
@@ -280,7 +334,16 @@
     <span class="k">return</span> <span class="n">rots</span></div>
 
 
-<div class="viewcode-block" id="plot_data_comparison"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.plot_data_comparison">[docs]</a><span class="k">def</span> <span class="nf">plot_data_comparison</span><span class="p">(</span><span class="n">data_labels</span><span class="p">,</span> <span class="n">y_labels</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">datasets</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_data_comparison"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.plot_data_comparison">[docs]</a><span class="k">def</span> <span class="nf">plot_data_comparison</span><span class="p">(</span><span class="n">data_labels</span><span class="p">,</span> <span class="n">y_labels</span><span class="p">,</span> <span class="n">time_vectors</span><span class="p">,</span> <span class="n">datasets</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plots overlapping time series datasets together for comparison</span>
+<span class="sd">    </span>
+<span class="sd">    :param data_labels: labels for the legend for each dataset</span>
+<span class="sd">    :param y_labels: labels for the y-axis of each plot</span>
+<span class="sd">    :param time_vectors: time vector associated with each dataset</span>
+<span class="sd">    :param datasets: data to plot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">n_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_labels</span><span class="p">)</span>
     <span class="n">n_sets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 
@@ -291,7 +354,7 @@
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_plots</span><span class="p">):</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_sets</span><span class="p">):</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">datasets</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">datasets</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; Angle [rad]&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">data_labels</span><span class="p">)</span>
@@ -300,26 +363,24 @@
 
 
 <div class="viewcode-block" id="accs_to_roll_pitch"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.accs_to_roll_pitch">[docs]</a><span class="k">def</span> <span class="nf">accs_to_roll_pitch</span><span class="p">(</span><span class="n">accs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates roll and pitch from accelerometer data assuming ZYX convention</span>
+
+<span class="sd">    :param accs: (3, N), N &gt;= 0 numpy array of accelerometer data</span>
+<span class="sd">    :return: corresponding arrays of roll and pitch angles</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">roll</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">accs</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
     <span class="n">pitch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="o">-</span><span class="n">accs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">accs</span><span class="p">[</span><span class="mi">2</span><span class="p">])))</span>
     <span class="k">return</span> <span class="n">roll</span><span class="p">,</span> <span class="n">pitch</span></div>
 
 
 <div class="viewcode-block" id="normalize_vectors"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.utilities.normalize_vectors">[docs]</a><span class="k">def</span> <span class="nf">normalize_vectors</span><span class="p">(</span><span class="n">vectors</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Normalizes vectors row-wise, ignoring vectors of all zeros.&quot;&quot;&quot;</span>
+
     <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">vectors</span><span class="p">[:,</span> <span class="n">norm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">norm</span><span class="p">[</span><span class="n">norm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">vectors</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">rpy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">rpy</span><span class="p">)</span>
-    <span class="n">rot</span> <span class="o">=</span> <span class="n">angles_to_rots_zyx</span><span class="p">(</span><span class="n">rpy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">rpy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rpy</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-    <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">rots_to_angles_zyx</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
-    <span class="n">rpy_again</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">rots_to_angles_zyx</span><span class="p">(</span><span class="n">rot</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rpy</span> <span class="o">-</span> <span class="n">rpy_again</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">001</span><span class="p">)</span>
-
 </pre></div>
 
            </div>

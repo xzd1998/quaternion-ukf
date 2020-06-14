@@ -8,7 +8,6 @@ Subpackages
    :maxdepth: 4
 
    estimator.data
-   estimator.sandbox
 
 Submodules
 ----------
