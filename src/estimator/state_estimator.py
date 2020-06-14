@@ -1,8 +1,6 @@
-"""State Estimator
-
+"""
 Defines interface for classes which estimate the state of an object equipped with an IMU.
-This state is meant to capture the orientation of, for example, a drone, and it may have
-three or six degrees of freedom depending on the implementation.
+This state is meant to capture the orientation of, for example, a drone.
 """
 
 from abc import ABC, abstractmethod
@@ -11,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from estimator.data import utilities
+from estimator.data.trainer import Trainer
 
 
 class StateEstimator(ABC):
@@ -28,19 +27,6 @@ class StateEstimator(ABC):
         After calling this function, the state and rotation history will be defined
         """
 
-    def _integrate_vel(self):
-        angles = np.zeros((3, self.num_data))
-        dts = np.diff(self.ts_imu)
-        da_dts = (self.vel_data[:, :-1] + self.vel_data[:, 1:]) * dts / 2
-        print(da_dts.shape)
-        angles[:, 1:] = np.cumsum(da_dts, axis=1)
-        return angles
-
-    @property
-    def state_dof(self):
-        """Number of degrees of freedom in the state vector, which may be overriden to 3"""
-        return 6
-
     @property
     def num_data(self):
         """Length of imu data array"""
@@ -57,11 +43,6 @@ class StateEstimator(ABC):
         return np.copy(self.source.imu_data)
 
     @lazy
-    def angles(self):
-        """Tuple of estimated roll, pitch, and yaw angles"""
-        return utilities.rots_to_angles_zyx(self.rots)
-
-    @lazy
     def acc_data(self):
         """Acceleromter data"""
         return np.copy(self.source.imu_data[:3])
@@ -75,26 +56,37 @@ class StateEstimator(ABC):
     def _normalize_data(data, mag=1):
         return data / np.linalg.norm(data, axis=0) * mag
 
-    def plot_comparison(self):
+    def evaluate_estimation(self, plot=False):
         """ Makes 3 plots for roll, pitch, and yaw comparisons of estimated versus truth data """
 
-        rots_truth_copy = np.copy(self.source.rots_vicon)
-        ts_vicon = np.copy(self.source.ts_vicon.reshape(-1))
-        t_start = min(ts_vicon[0], self.source.ts_imu[0])
-        rots_truth_copy = rots_truth_copy[..., ts_vicon > self.source.ts_imu[0]]
-        rots_est_copy = self.rots[..., self.source.ts_imu > ts_vicon[0]]
+        indexer = ~np.any(np.isnan(self.source.rots_vicon), axis=(0, 1))
+        rots_est, rots_truth, ts_imu, ts_vicon = Trainer.clip_data(
+            np.copy(self.source.rots_vicon[..., indexer]),
+            np.copy(self.rots),
+            np.copy(self.source.ts_imu),
+            np.copy(self.source.ts_vicon[indexer])
+        )
 
         labels = ["Roll", "Pitch", "Yaw"]
 
-        angs_est = utilities.rots_to_angles_zyx(rots_est_copy)
-        angs_truth = utilities.rots_to_angles_zyx(rots_truth_copy)
+        angs_est = utilities.rots_to_angles_zyx(rots_est)
+        angs_truth = utilities.rots_to_angles_zyx(rots_truth)
 
-        for i in range(3):
-            plt.figure(i)
-            plt.plot(ts_vicon[ts_vicon > self.source.ts_imu[0]] - t_start, angs_truth[i])
-            plt.plot(self.source.ts_imu[self.source.ts_imu > ts_vicon[0]] - t_start, angs_est[i])
-            plt.xlabel("Time [s]")
-            plt.ylabel(labels[i] + " Angle [rad]")
-            plt.grid(True)
-            plt.legend(["Truth", "UKF"])
-        plt.show()
+        rmse = []
+        for (ang_est, ang_truth) in zip(angs_est, angs_truth):
+            diff = np.abs(ang_est - ang_truth)
+            diff[diff > np.pi] -= 2 * np.pi
+            rmse.append(np.sqrt(np.sum(np.square(diff)) / len(ang_est)))
+
+        if plot:
+            for i in range(3):
+                plt.figure(i)
+                plt.plot(ts_vicon, angs_truth[i])
+                plt.plot(ts_imu, angs_est[i])
+                plt.xlabel("Time [s]")
+                plt.ylabel(labels[i] + " Angle [rad]")
+                plt.grid(True)
+                plt.legend(["Truth", "UKF"])
+            plt.show()
+
+        return rmse

@@ -60,17 +60,14 @@ class DataStore(DataSource):
         ts_imu = imu_data["ts"].reshape(-1)
 
         rots_vicon = vicon_data["rots"]
-        data_imu = np.copy(sensor_data)
+        imu_data = np.copy(sensor_data)
 
         # reorder gyro data from imu to roll-pitch-yaw convention
-        data_imu[3] = sensor_data[4]
-        data_imu[4] = sensor_data[5]
-        data_imu[5] = sensor_data[3]
+        imu_data[3] = sensor_data[4]
+        imu_data[4] = sensor_data[5]
+        imu_data[5] = sensor_data[3]
         if coefficients is not None and intercepts is not None:
-            data_imu = data_imu * coefficients.reshape(-1, 1) + intercepts.reshape(-1, 1)
+            imu_data = imu_data * coefficients.reshape(-1, 1) + intercepts.reshape(-1, 1)
+            imu_data[3:] -= imu_data[3:, :1]
 
-        super().__init__(ts_vicon, rots_vicon, ts_imu, data_imu[:3], data_imu[3:])
-
-
-if __name__ == "__main__":
-    store = DataStore(dataset_number=1)
+        super().__init__(ts_vicon, rots_vicon, ts_imu, imu_data[:3], imu_data[3:])

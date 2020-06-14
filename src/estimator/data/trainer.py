@@ -1,7 +1,4 @@
 """
-Trainer
-^^^^^^^
-
 Calibrates IMU data using linear regression after transforming ground-truth data,
 which comes in the form of rotation matrices. The rotation matrix data is
 transformed into the expected gravity vector and expected angular velocity vector

@@ -185,4 +185,4 @@ if __name__ == "__main__":
         )
         pass
     else:
-        f.plot_comparison()
+        f.evaluate_estimation()

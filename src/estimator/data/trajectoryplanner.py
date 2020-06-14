@@ -9,6 +9,9 @@ class TrajectoryPlanner:
         self.dt = dt
         self.num_data = int(duration / dt)
 
+        self.noise_stddev = noise_stddev
+        self.drift_stddev = drift_stddev
+
         if len(bounds) != len(acc_calculators):
             raise ValueError("Mismatch: {} bounds for {} calculators".format(len(bounds), len(acc_calculators)))
         if not all([len(pair) == 2 for pair in bounds]):
