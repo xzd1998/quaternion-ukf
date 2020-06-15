@@ -1,12 +1,12 @@
 ---
-title: Quaternion UKF
-...
+# Quaternion UKF
+
 
 Implentation of an unscented Kalman filter for orientation tracking of a
 robot (e.g. a quadrotor or drone).
 
 Introduction
-============
+---
 
 This implementation of a UKF for tracking orientation of a drone with
 gyro and accelerometer data follows closely that described in the paper
@@ -20,7 +20,7 @@ infrastructure includes a means to manufacture toy data to validate that
 the filter is indeed working properly.
 
 Project Setup
-=============
+---
 
 -   Clone repository
 
@@ -38,7 +38,7 @@ make install
 ```
 
 Usage
-=====
+---
 
 There are three sample datasets to run the code on. To run in terminal:
 

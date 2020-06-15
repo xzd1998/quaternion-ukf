@@ -374,7 +374,7 @@ because there’s no guarantee that the two time vectors are the same</p>
 
 <dl class="py method">
 <dt id="estimator.data.trainer.Trainer.train_acc">
-<code class="sig-name descname">train_acc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trainer.html#Trainer.train_acc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trainer.Trainer.train_acc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train_acc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trainer.html#Trainer.train_acc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trainer.Trainer.train_acc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves for coefficients for accelerometer data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -385,7 +385,7 @@ because there’s no guarantee that the two time vectors are the same</p>
 
 <dl class="py method">
 <dt id="estimator.data.trainer.Trainer.train_vel">
-<code class="sig-name descname">train_vel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trainer.html#Trainer.train_vel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trainer.Trainer.train_vel" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train_vel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">plot</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/trainer.html#Trainer.train_vel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.trainer.Trainer.train_vel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves for coefficients for accelerometer data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -593,13 +593,13 @@ Euler angles using the ZYX convention</p>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.rots_to_vels">
-<code class="sig-name descname">rots_to_vels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em>, <em class="sig-param"><span class="n">times</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_vels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_vels" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">rots_to_vels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rots</span></em>, <em class="sig-param"><span class="n">time_vector</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#rots_to_vels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.rots_to_vels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts rotation matrices over time to angular velocities using the ZYX convention</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rots</strong> – (3, 3, N), N &gt; 1 numpy array of rotation matrices</p></li>
-<li><p><strong>times</strong> – time vector of length N associated with rotation matrices</p></li>
+<li><p><strong>time_vector</strong> – time vector of length N associated with rotation matrices</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

@@ -63,6 +63,11 @@ github:
 	@cp -a build/html/. ../
 	@pandoc -s -o ../../README.md README.rst
 	@sed -i 's/{.sourceCode.*}//g' ../../README.md
+	@sed -i 's/^=+/---/g' ../../README.md
+	@sed -i 's/^\.\.\.//g' ../../README.md
+	@sed -i 's/^==*/---/g' ../../README.md
+	@sed -i 's/^\(Introduction|Project Setup|Usage\)/## \1/g' ../../README.md
+	@sed -i 's/^title: \(Quaternion UKF\)/# \1/g' ../../README.md
 
 .PHONY: dirhtml
 dirhtml:
