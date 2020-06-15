@@ -83,7 +83,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion UKF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">estimator</a></li>
 </ul>
 
@@ -163,7 +163,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="TrajectoryPlanner"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.TrajectoryPlanner">[docs]</a><span class="k">class</span> <span class="nc">TrajectoryPlanner</span><span class="p">:</span>
+<div class="viewcode-block" id="TrajectoryPlanner"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.TrajectoryPlanner">[docs]</a><span class="k">class</span> <span class="nc">TrajectoryPlanner</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parent class for trajectory planners which defines the interface to plan minimum force</span>
 <span class="sd">    trajectories among different orientations</span>
@@ -216,22 +216,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">bounds</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calculator_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">acc_calculators</span><span class="p">))</span>
 
-<div class="viewcode-block" id="TrajectoryPlanner.get_calculator"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.TrajectoryPlanner.get_calculator">[docs]</a>    <span class="k">def</span> <span class="nf">get_calculator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
+<div class="viewcode-block" id="TrajectoryPlanner.get_calculator"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.TrajectoryPlanner.get_calculator">[docs]</a>    <span class="k">def</span> <span class="nf">get_calculator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the active acceleration calculator for a given time boundary&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculator_map</span><span class="p">[</span><span class="n">bound</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="TrajectoryPlanner.incrementer"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.TrajectoryPlanner.incrementer">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="TrajectoryPlanner.incrementer"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.TrajectoryPlanner.incrementer">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">incrementer</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Accelration calculator that increments by some amount&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">amount</span></div>
 
-<div class="viewcode-block" id="TrajectoryPlanner.decrementer"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.TrajectoryPlanner.decrementer">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="TrajectoryPlanner.decrementer"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.TrajectoryPlanner.decrementer">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">decrementer</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Accelration calculator that decrements by some amount&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">-</span> <span class="n">amount</span></div></div>
 
 
-<div class="viewcode-block" id="SimplePlanner"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.SimplePlanner">[docs]</a><span class="k">class</span> <span class="nc">SimplePlanner</span><span class="p">(</span><span class="n">TrajectoryPlanner</span><span class="p">):</span>
+<div class="viewcode-block" id="SimplePlanner"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.SimplePlanner">[docs]</a><span class="k">class</span> <span class="nc">SimplePlanner</span><span class="p">(</span><span class="n">TrajectoryPlanner</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plans a one-directional, minimum force trajectory from zero to some other orientation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -251,7 +251,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RoundTripPlanner"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.RoundTripPlanner">[docs]</a><span class="k">class</span> <span class="nc">RoundTripPlanner</span><span class="p">(</span><span class="n">TrajectoryPlanner</span><span class="p">):</span>
+<div class="viewcode-block" id="RoundTripPlanner"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.RoundTripPlanner">[docs]</a><span class="k">class</span> <span class="nc">RoundTripPlanner</span><span class="p">(</span><span class="n">TrajectoryPlanner</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plans a two-directional, minimum force trajectory from zero to some other orientation</span>
 <span class="sd">    back to zero</span>
@@ -275,7 +275,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="StationaryPlanner"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trajectoryplanner.StationaryPlanner">[docs]</a><span class="k">class</span> <span class="nc">StationaryPlanner</span><span class="p">(</span><span class="n">TrajectoryPlanner</span><span class="p">):</span>
+<div class="viewcode-block" id="StationaryPlanner"><a class="viewcode-back" href="../../../data.html#estimator.data.trajectoryplanner.StationaryPlanner">[docs]</a><span class="k">class</span> <span class="nc">StationaryPlanner</span><span class="p">(</span><span class="n">TrajectoryPlanner</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plans a zero-movement trajectory</span>
 <span class="sd">    &quot;&quot;&quot;</span>

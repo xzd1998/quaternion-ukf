@@ -23,19 +23,19 @@ are used to automatically calibrate the data. That way, :code:`store.vel_data` h
 already been calibrated.
 
 .. code-block::
-   :linenos:
+    :linenos:
 
-   from estimator.data.datastore import DataStore
-   # Note: DataStore calibrates data by default unless coeffs and inters specified as None
-   store = DataStore(dataset_number=3, coefficients=None, intercepts=None)
-   trainer = Trainer(
+    from estimator.data.datastore import DataStore
+    # Note: DataStore calibrates data by default unless coeffs and inters specified as None
+    store = DataStore(dataset_number=3, coefficients=None, intercepts=None)
+    trainer = Trainer(
        store.rots_vicon,
        store.imu_data,
        store.ts_imu,
        store.ts_vicon
-   )
-   coeffs, biases, coef_determination = trainer.train_vel()
-   calibrated_vel_data = store.vel_data * coeffs.reshape(-1, 1) + biases.reshape(-1, 1)
+    )
+    coeffs, biases, coef_determination = trainer.train_vel()
+    calibrated_vel_data = store.vel_data * coeffs.reshape(-1, 1) + biases.reshape(-1, 1)
 """
 
 import matplotlib.pyplot as plt

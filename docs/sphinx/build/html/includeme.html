@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Quaternion-Based UKF for Orientation Tracking &mdash; QuaternionUkf 0.1 documentation</title>
+  <title>Quaternion UKF &mdash; QuaternionUkf 0.1 documentation</title>
   
 
   
@@ -85,7 +85,9 @@
             
             
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Quaternion-Based UKF for Orientation Tracking</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quaternion UKF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#project-setup">Project Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
 </ul>
 </li>
@@ -135,7 +137,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Quaternion-Based UKF for Orientation Tracking</li>
+      <li>Quaternion UKF</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -154,15 +156,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="quaternion-based-ukf-for-orientation-tracking">
-<h1>Quaternion-Based UKF for Orientation Tracking<a class="headerlink" href="#quaternion-based-ukf-for-orientation-tracking" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="quaternion-ukf">
+<h1>Quaternion UKF<a class="headerlink" href="#quaternion-ukf" title="Permalink to this headline">¶</a></h1>
+<p>Implentation of an unscented Kalman filter for orientation tracking of a robot (e.g. a quadrotor or drone).</p>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>This implementation of a UKF for tracking orientation of a drone with gyro and accelerometer data follows closely that described in the paper “A Quaternion-based Unscented Kalman Filter for Orientation Tracking” by Edgar Kraft.</p>
+<p>This project was completed as part of ESE 650: Learning in Robotics at the University of Pennsylvania, though it has been tweaked, and additional infrastructure has been built since then. This additional infrastructure includes a means to manufacture toy data to validate that the filter is indeed working properly.</p>
+</div>
+<div class="section" id="project-setup">
+<h2>Project Setup<a class="headerlink" href="#project-setup" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Clone repository</p></li>
+</ul>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>git clone https://github.com/mattlisle/quaternion-ukf.git
+</pre></div>
+</td></tr></table></div>
+<ul class="simple">
+<li><p>Create a virtual environment and run setup script (python version should be &gt;= 3.5.2)</p></li>
+</ul>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">virtualenv</span> <span class="o">--</span><span class="n">python</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">new</span><span class="o">/</span><span class="n">virtualenv</span>
+<span class="n">source</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">new</span><span class="o">/</span><span class="n">virtualenv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</td></tr></table></div>
+</div>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>There are three sample datasets to run the code on. To run in terminal:</p>
-<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>python3 ukf.py -D <span class="nv">$DATASET</span>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>make run <span class="nv">DATASET</span><span class="o">=</span>&lt;n&gt;
 </pre></div>
 </td></tr></table></div>
-<p>Where <cite>$DATASET</cite> is a number from 1 to 3.</p>
+<p>Where <code class="code docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> is a number from 1 to 3.</p>
 </div>
 </div>
 

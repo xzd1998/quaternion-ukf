@@ -11,22 +11,22 @@ of :code:`pi/2`.
 To build some toy data, a trajectory planner needs to be supplied, which the data
 maker will then use to back calculate what the gyro and accelerometer readings
 _would_ be for the planned trajectory. For more on how to define a trajectory
-planner, see :doc:`./trajectoryplanner`.
+planner, see :mod:`data.trajectoryplanner`.
 
 Here's an example to instantiate a :code:`DataMaker` and plot the orientation data
 that it makes:
 
 .. code-block::
-   :linenos:
+    :linenos:
 
-   planner = SimplePlanner()
-   maker = DataMaker(planner)
-   ang_labels = ["Roll", "Pitch", "Yaw"]
-   utilities.plot_data_comparison(
-       ["data"],
-       ang_labels,
-       [maker.ts_data],
-       [maker.angles]
+    planner = SimplePlanner()
+    maker = DataMaker(planner)
+    ang_labels = ["Roll", "Pitch", "Yaw"]
+    utilities.plot_data_comparison(
+        ["data"],
+        ang_labels,
+        [maker.ts_data],
+        [maker.angles]
     )
 """
 

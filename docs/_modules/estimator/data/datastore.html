@@ -83,7 +83,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion UKF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">estimator</a></li>
 </ul>
 
@@ -162,12 +162,12 @@
 <span class="kn">from</span> <span class="nn">estimator.constants</span> <span class="k">import</span> <span class="n">STATE_DOF</span>
 
 
-<div class="viewcode-block" id="DataStore"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datastore.DataStore">[docs]</a><span class="k">class</span> <span class="nc">DataStore</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>  <span class="c1"># pylint: disable=too-few-public-methods</span>
+<div class="viewcode-block" id="DataStore"><a class="viewcode-back" href="../../../data.html#estimator.data.datastore.DataStore">[docs]</a><span class="k">class</span> <span class="nc">DataStore</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>  <span class="c1"># pylint: disable=too-few-public-methods</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Loads data from an existing source of matching vicon and imu data. If the intention is</span>
 <span class="sd">    to calibrate the data, :code:`coefficients` and :code:`intercepts` should be specified</span>
 <span class="sd">    as :code:`None`, otherwise the :code:`DataSource` will automatically calibrate the data</span>
-<span class="sd">    using the static members defined in :doc:`./trainer`</span>
+<span class="sd">    using the static members defined in :class:`data.trainer.Trainer`</span>
 
 <span class="sd">    :ivar dataset_number: corresponding to the numbers in the filenames</span>
 <span class="sd">    :ivar path_to_data: path to the directory of this package</span>

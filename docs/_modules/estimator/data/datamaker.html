@@ -83,7 +83,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion UKF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">estimator</a></li>
 </ul>
 
@@ -161,22 +161,22 @@
 <span class="sd">To build some toy data, a trajectory planner needs to be supplied, which the data</span>
 <span class="sd">maker will then use to back calculate what the gyro and accelerometer readings</span>
 <span class="sd">_would_ be for the planned trajectory. For more on how to define a trajectory</span>
-<span class="sd">planner, see :doc:`./trajectoryplanner`.</span>
+<span class="sd">planner, see :mod:`data.trajectoryplanner`.</span>
 
 <span class="sd">Here&#39;s an example to instantiate a :code:`DataMaker` and plot the orientation data</span>
 <span class="sd">that it makes:</span>
 
 <span class="sd">.. code-block::</span>
-<span class="sd">   :linenos:</span>
+<span class="sd">    :linenos:</span>
 
-<span class="sd">   planner = SimplePlanner()</span>
-<span class="sd">   maker = DataMaker(planner)</span>
-<span class="sd">   ang_labels = [&quot;Roll&quot;, &quot;Pitch&quot;, &quot;Yaw&quot;]</span>
-<span class="sd">   utilities.plot_data_comparison(</span>
-<span class="sd">       [&quot;data&quot;],</span>
-<span class="sd">       ang_labels,</span>
-<span class="sd">       [maker.ts_data],</span>
-<span class="sd">       [maker.angles]</span>
+<span class="sd">    planner = SimplePlanner()</span>
+<span class="sd">    maker = DataMaker(planner)</span>
+<span class="sd">    ang_labels = [&quot;Roll&quot;, &quot;Pitch&quot;, &quot;Yaw&quot;]</span>
+<span class="sd">    utilities.plot_data_comparison(</span>
+<span class="sd">        [&quot;data&quot;],</span>
+<span class="sd">        ang_labels,</span>
+<span class="sd">        [maker.ts_data],</span>
+<span class="sd">        [maker.angles]</span>
 <span class="sd">    )</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -186,7 +186,7 @@
 <span class="kn">from</span> <span class="nn">estimator.data</span> <span class="k">import</span> <span class="n">utilities</span>
 
 
-<div class="viewcode-block" id="DataMaker"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datamaker.DataMaker">[docs]</a><span class="k">class</span> <span class="nc">DataMaker</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
+<div class="viewcode-block" id="DataMaker"><a class="viewcode-back" href="../../../data.html#estimator.data.datamaker.DataMaker">[docs]</a><span class="k">class</span> <span class="nc">DataMaker</span><span class="p">(</span><span class="n">DataSource</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates test data from a pre-planned trajectory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -224,7 +224,7 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ts_data</span><span class="p">,</span> <span class="n">rots_vicon</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">,</span> <span class="n">acc_data</span><span class="p">,</span> <span class="n">vel_data</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DataMaker.plot_data"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.datamaker.DataMaker.plot_data">[docs]</a>    <span class="k">def</span> <span class="nf">plot_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DataMaker.plot_data"><a class="viewcode-back" href="../../../data.html#estimator.data.datamaker.DataMaker.plot_data">[docs]</a>    <span class="k">def</span> <span class="nf">plot_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plots the data made by this DataMaker</span>
 <span class="sd">        &quot;&quot;&quot;</span>

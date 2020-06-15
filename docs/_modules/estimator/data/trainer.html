@@ -83,7 +83,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion UKF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">estimator</a></li>
 </ul>
 
@@ -173,19 +173,19 @@
 <span class="sd">already been calibrated.</span>
 
 <span class="sd">.. code-block::</span>
-<span class="sd">   :linenos:</span>
+<span class="sd">    :linenos:</span>
 
-<span class="sd">   from estimator.data.datastore import DataStore</span>
-<span class="sd">   # Note: DataStore calibrates data by default unless coeffs and inters specified as None</span>
-<span class="sd">   store = DataStore(dataset_number=3, coefficients=None, intercepts=None)</span>
-<span class="sd">   trainer = Trainer(</span>
+<span class="sd">    from estimator.data.datastore import DataStore</span>
+<span class="sd">    # Note: DataStore calibrates data by default unless coeffs and inters specified as None</span>
+<span class="sd">    store = DataStore(dataset_number=3, coefficients=None, intercepts=None)</span>
+<span class="sd">    trainer = Trainer(</span>
 <span class="sd">       store.rots_vicon,</span>
 <span class="sd">       store.imu_data,</span>
 <span class="sd">       store.ts_imu,</span>
 <span class="sd">       store.ts_vicon</span>
-<span class="sd">   )</span>
-<span class="sd">   coeffs, biases, coef_determination = trainer.train_vel()</span>
-<span class="sd">   calibrated_vel_data = store.vel_data * coeffs.reshape(-1, 1) + biases.reshape(-1, 1)</span>
+<span class="sd">    )</span>
+<span class="sd">    coeffs, biases, coef_determination = trainer.train_vel()</span>
+<span class="sd">    calibrated_vel_data = store.vel_data * coeffs.reshape(-1, 1) + biases.reshape(-1, 1)</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -197,7 +197,7 @@
 <span class="kn">from</span> <span class="nn">estimator.constants</span> <span class="k">import</span> <span class="n">NUM_AXES</span>
 
 
-<div class="viewcode-block" id="Trainer"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer">[docs]</a><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
+<div class="viewcode-block" id="Trainer"><a class="viewcode-back" href="../../../data.html#estimator.data.trainer.Trainer">[docs]</a><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interface for training a linear regression model for accelerometer and gyro data</span>
 <span class="sd">    with two static members defined such that:</span>
@@ -230,7 +230,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rots</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imu_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_imu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_vicon</span> <span class="o">=</span> \
             <span class="n">Trainer</span><span class="o">.</span><span class="n">clip_data</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">imu_data</span><span class="p">,</span> <span class="n">ts_imu</span><span class="p">,</span> <span class="n">ts_vicon</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Trainer.train_acc"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.train_acc">[docs]</a>    <span class="k">def</span> <span class="nf">train_acc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Trainer.train_acc"><a class="viewcode-back" href="../../../data.html#estimator.data.trainer.Trainer.train_acc">[docs]</a>    <span class="k">def</span> <span class="nf">train_acc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Solves for coefficients for accelerometer data</span>
 
@@ -272,7 +272,7 @@
 
         <span class="k">return</span> <span class="n">coefficients</span><span class="p">,</span> <span class="n">intercepts</span><span class="p">,</span> <span class="n">coef_determination</span></div>
 
-<div class="viewcode-block" id="Trainer.train_vel"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.train_vel">[docs]</a>    <span class="k">def</span> <span class="nf">train_vel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Trainer.train_vel"><a class="viewcode-back" href="../../../data.html#estimator.data.trainer.Trainer.train_vel">[docs]</a>    <span class="k">def</span> <span class="nf">train_vel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Solves for coefficients for accelerometer data</span>
 
@@ -307,7 +307,7 @@
 
         <span class="k">return</span> <span class="n">coefficients</span><span class="p">,</span> <span class="n">intercepts</span><span class="p">,</span> <span class="n">coef_determination</span></div>
 
-<div class="viewcode-block" id="Trainer.clip_data"><a class="viewcode-back" href="../../../estimator.data.html#estimator.data.trainer.Trainer.clip_data">[docs]</a>    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Trainer.clip_data"><a class="viewcode-back" href="../../../data.html#estimator.data.trainer.Trainer.clip_data">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">clip_data</span><span class="p">(</span><span class="n">data_to_clip</span><span class="p">,</span> <span class="n">data_reference</span><span class="p">,</span> <span class="n">ts_reference</span><span class="p">,</span> <span class="n">ts_to_clip</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Lines up both time vectors and interpolates the data to clip to the raw data</span>

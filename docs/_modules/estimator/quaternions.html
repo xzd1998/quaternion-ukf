@@ -83,7 +83,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">Quaternion-Based UKF for Orientation Tracking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">Quaternion UKF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">estimator</a></li>
 </ul>
 
@@ -163,19 +163,19 @@
 <span class="sd">For example all of the following are allowed:</span>
 
 <span class="sd">.. code-block::</span>
-<span class="sd">   :linenos:</span>
+<span class="sd">    :linenos:</span>
 
-<span class="sd">   import numpy as np</span>
-<span class="sd">   from estimator.quaternions import Quaternions</span>
+<span class="sd">    import numpy as np</span>
+<span class="sd">    from estimator.quaternions import Quaternions</span>
 
-<span class="sd">   single = Quaternions.from_vectors(np.zeros(3))</span>
-<span class="sd">   multiple = Quaternions.from_vectors(np.ones((3, 4)))</span>
+<span class="sd">    single = Quaternions.from_vectors(np.zeros(3))</span>
+<span class="sd">    multiple = Quaternions.from_vectors(np.ones((3, 4)))</span>
 
-<span class="sd">   # All of the below are allowed</span>
-<span class="sd">   print(single.q_multiply(single))</span>
-<span class="sd">   print(single.q_multiply(multiple))</span>
-<span class="sd">   print(multiple.q_multiply(single))</span>
-<span class="sd">   print(multiple.q_multiply(multiple))</span>
+<span class="sd">    # All of the below are allowed</span>
+<span class="sd">    print(single.q_multiply(single))</span>
+<span class="sd">    print(single.q_multiply(multiple))</span>
+<span class="sd">    print(multiple.q_multiply(single))</span>
+<span class="sd">    print(multiple.q_multiply(multiple))</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>

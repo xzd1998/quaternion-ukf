@@ -1,5 +1,5 @@
 """
-In contrast to :code:`DataMaker`s, :code:`DataStore`s load real sensor data.
+In contrast to :code:`DataMaker`, :code:`DataStore` loads real sensor data.
 """
 
 import os
@@ -17,7 +17,7 @@ class DataStore(DataSource):  # pylint: disable=too-few-public-methods
     Loads data from an existing source of matching vicon and imu data. If the intention is
     to calibrate the data, :code:`coefficients` and :code:`intercepts` should be specified
     as :code:`None`, otherwise the :code:`DataSource` will automatically calibrate the data
-    using the static members defined in :doc:`./trainer`
+    using the static members defined in :class:`data.trainer.Trainer`
 
     :ivar dataset_number: corresponding to the numbers in the filenames
     :ivar path_to_data: path to the directory of this package

@@ -7,12 +7,12 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   estimator.data
+   data
 
 Submodules
 ----------
 
-estimator.constants
+constants
 -------------------
 
 .. automodule:: estimator.constants
@@ -20,7 +20,7 @@ estimator.constants
    :undoc-members:
    :show-inheritance:
 
-estimator.quaternions
+quaternions
 ---------------------
 
 .. automodule:: estimator.quaternions
@@ -28,7 +28,7 @@ estimator.quaternions
    :undoc-members:
    :show-inheritance:
 
-estimator.quaternionukf
+quaternionukf
 -----------------------
 
 .. automodule:: estimator.quaternionukf
@@ -36,7 +36,7 @@ estimator.quaternionukf
    :undoc-members:
    :show-inheritance:
 
-estimator.roll\_pitch\_calculator
+roll\_pitch\_calculator
 ---------------------------------
 
 .. automodule:: estimator.roll_pitch_calculator
@@ -44,7 +44,7 @@ estimator.roll\_pitch\_calculator
    :undoc-members:
    :show-inheritance:
 
-estimator.state\_estimator
+state\_estimator
 --------------------------
 
 .. automodule:: estimator.state_estimator
@@ -52,19 +52,10 @@ estimator.state\_estimator
    :undoc-members:
    :show-inheritance:
 
-estimator.velocity\_integrator
+velocity\_integrator
 ------------------------------
 
 .. automodule:: estimator.velocity_integrator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: estimator
    :members:
    :undoc-members:
    :show-inheritance:

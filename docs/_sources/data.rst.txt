@@ -4,7 +4,7 @@ estimator.data
 Submodules
 ----------
 
-estimator.data.datamaker
+datamaker
 ------------------------
 
 .. automodule:: estimator.data.datamaker
@@ -12,7 +12,7 @@ estimator.data.datamaker
    :undoc-members:
    :show-inheritance:
 
-estimator.data.datasource
+datasource
 -------------------------
 
 .. automodule:: estimator.data.datasource
@@ -20,7 +20,7 @@ estimator.data.datasource
    :undoc-members:
    :show-inheritance:
 
-estimator.data.datastore
+datastore
 ------------------------
 
 .. automodule:: estimator.data.datastore
@@ -28,7 +28,7 @@ estimator.data.datastore
    :undoc-members:
    :show-inheritance:
 
-estimator.data.trainer
+trainer
 ----------------------
 
 .. automodule:: estimator.data.trainer
@@ -36,7 +36,7 @@ estimator.data.trainer
    :undoc-members:
    :show-inheritance:
 
-estimator.data.trajectoryplanner
+trajectoryplanner
 --------------------------------
 
 .. automodule:: estimator.data.trajectoryplanner
@@ -44,7 +44,7 @@ estimator.data.trajectoryplanner
    :undoc-members:
    :show-inheritance:
 
-estimator.data.utilities
+utilities
 ------------------------
 
 .. automodule:: estimator.data.utilities
@@ -52,11 +52,3 @@ estimator.data.utilities
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: estimator.data
-   :members:
-   :undoc-members:
-   :show-inheritance:

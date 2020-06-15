@@ -13,19 +13,19 @@ are allowed between two Quaternions objects when:
 For example all of the following are allowed:
 
 .. code-block::
-   :linenos:
+    :linenos:
 
-   import numpy as np
-   from estimator.quaternions import Quaternions
+    import numpy as np
+    from estimator.quaternions import Quaternions
 
-   single = Quaternions.from_vectors(np.zeros(3))
-   multiple = Quaternions.from_vectors(np.ones((3, 4)))
+    single = Quaternions.from_vectors(np.zeros(3))
+    multiple = Quaternions.from_vectors(np.ones((3, 4)))
 
-   # All of the below are allowed
-   print(single.q_multiply(single))
-   print(single.q_multiply(multiple))
-   print(multiple.q_multiply(single))
-   print(multiple.q_multiply(multiple))
+    # All of the below are allowed
+    print(single.q_multiply(single))
+    print(single.q_multiply(multiple))
+    print(multiple.q_multiply(single))
+    print(multiple.q_multiply(multiple))
 """
 
 import numpy as np
