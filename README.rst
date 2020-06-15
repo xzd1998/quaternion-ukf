@@ -27,8 +27,7 @@ Project Setup
 
     virtualenv --python=/usr/bin/python /path/to/new/virtualenv
     source /path/to/new/virtualenv/bin/activate
-    python setup.py
-
+    make install
 
 Usage
 -----
