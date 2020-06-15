@@ -24,5 +24,5 @@ test:
 	@python -m unittest discover $(TEST)
 
 lint:
-	@pylint --rcfile=.pylintrc $(MODULE) 
+	@pylint --rcfile=.pylintrc -d import-error $(MODULE) 
 
