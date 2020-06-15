@@ -20,9 +20,9 @@ install:
 run:
 	@python -m $(MODULE) -d $(DATASET)
 
-test:
+unit:
 	@python -m unittest discover $(TEST)
 
 lint:
-	@pylint --rcfile=.pylintrc -d import-error $(MODULE) 
+	@pylint --rcfile=.pylintrc --disable=E0611 $(MODULE) 
 
