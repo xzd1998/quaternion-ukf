@@ -20,17 +20,19 @@ To run the estimators with toy data, you can use the following:
 
 .. code-block:: bash
 
-    python -m estimator
+    make run
 
 To run the estimators on real data from an IMU, specify a dataset number from 1 to 3:
 
-   .. code-block:: bash
+.. code-block:: bash
 
-    python -m estimator --dataset-num 1
+    make run DATASET=<n>
+
+Where :code:`<n>` is a number from 1 to 3.
 
 These datasets were provided by the instructors as part of the project. The output of the demo are the graphs of roll, pitch, and yaw, and the RMSE of each angle is printed to stdout.
 
-For a well-tuned filter, the RMSE of the UKF will beat (be lower than) that of integrating the gyro data _or_ calculating roll and pitch from the accelerometer.
+For a well-tuned filter, the RMSE of the UKF will beat (be lower than) that of integrating the gyro data **or** calculating roll and pitch from the accelerometer.
 
 This is evident when you look at the results of running the estimators on the toy data, which has the following output
 
@@ -40,6 +42,6 @@ This is evident when you look at the results of running the estimators on the to
     VelocityIntegrator RMSE:  [0.6236, 0.4494, 0.3113]
     QuaternionUkf RMSE:       [0.0013, 0.0017, 0.1045]
 
-Even though the gyro data has a _lot_ of drift, the UKF is able to fuse the sensor data into a more accurate estimate than if one sensor had been trusted completely.
+Even though the gyro data has a **lot** of drift, the UKF is able to fuse the sensor data into a more accurate estimate than if one sensor had been trusted completely.
 
 Getting a good model of the noise for the toy data is easy because I defined the model, but the same isn't true for the real IMU data. I've made my best guess for the process and measurement noise by looking at the coefficient of determination from calibrating the data.

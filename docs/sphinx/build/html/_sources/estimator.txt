@@ -1,78 +1,61 @@
-estimator package
-=================
+estimator
+=========
 
 Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    estimator.data
-    estimator.sandbox
+   data
 
 Submodules
 ----------
 
-estimator.constants module
---------------------------
+constants
+-------------------
 
 .. automodule:: estimator.constants
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-estimator.quaternion_integrator module
---------------------------------------
-
-.. automodule:: estimator.quaternion_integrator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-estimator.quaternions module
-----------------------------
+quaternions
+---------------------
 
 .. automodule:: estimator.quaternions
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-estimator.quaternionukf module
-------------------------------
+quaternionukf
+-----------------------
 
 .. automodule:: estimator.quaternionukf
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-estimator.roll_pitch_calculator module
---------------------------------------
+roll\_pitch\_calculator
+---------------------------------
 
 .. automodule:: estimator.roll_pitch_calculator
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-estimator.state_estimator module
---------------------------------
+state\_estimator
+--------------------------
 
 .. automodule:: estimator.state_estimator
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-estimator.vector_integrator module
-----------------------------------
+velocity\_integrator
+------------------------------
 
-.. automodule:: estimator.vector_integrator
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: estimator
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. automodule:: estimator.velocity_integrator
+   :members:
+   :undoc-members:
+   :show-inheritance:

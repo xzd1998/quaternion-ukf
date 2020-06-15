@@ -188,24 +188,23 @@
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-estimator" title="Permalink to this headline">¶</a></h2>
 <p>Running this module runs a demo that plots a comparison of the UKF, the result of just integrating the gyro data, and the result of calculating the roll and pitch from the acceleromter data correctly. See the README for why the yaw can’t be calculated directly.</p>
 <p>To run the estimators with toy data, you can use the following:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m estimator
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make run
 </pre></div>
 </div>
 <p>To run the estimators on real data from an IMU, specify a dataset number from 1 to 3:</p>
-<blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m estimator --dataset-num <span class="m">1</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make run <span class="nv">DATASET</span><span class="o">=</span>&lt;n&gt;
 </pre></div>
 </div>
-</div></blockquote>
+<p>Where <code class="code docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> is a number from 1 to 3.</p>
 <p>These datasets were provided by the instructors as part of the project. The output of the demo are the graphs of roll, pitch, and yaw, and the RMSE of each angle is printed to stdout.</p>
-<p>For a well-tuned filter, the RMSE of the UKF will beat (be lower than) that of integrating the gyro data _or_ calculating roll and pitch from the accelerometer.</p>
+<p>For a well-tuned filter, the RMSE of the UKF will beat (be lower than) that of integrating the gyro data <strong>or</strong> calculating roll and pitch from the accelerometer.</p>
 <p>This is evident when you look at the results of running the estimators on the toy data, which has the following output</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">RollPitchCalculator</span> <span class="n">RMSE</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0019</span><span class="p">,</span> <span class="mf">0.0024</span><span class="p">,</span> <span class="mf">0.9610</span><span class="p">]</span>
 <span class="n">VelocityIntegrator</span> <span class="n">RMSE</span><span class="p">:</span>  <span class="p">[</span><span class="mf">0.6236</span><span class="p">,</span> <span class="mf">0.4494</span><span class="p">,</span> <span class="mf">0.3113</span><span class="p">]</span>
 <span class="n">QuaternionUkf</span> <span class="n">RMSE</span><span class="p">:</span>       <span class="p">[</span><span class="mf">0.0013</span><span class="p">,</span> <span class="mf">0.0017</span><span class="p">,</span> <span class="mf">0.1045</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Even though the gyro data has a _lot_ of drift, the UKF is able to fuse the sensor data into a more accurate estimate than if one sensor had been trusted completely.</p>
+<p>Even though the gyro data has a <strong>lot</strong> of drift, the UKF is able to fuse the sensor data into a more accurate estimate than if one sensor had been trusted completely.</p>
 <p>Getting a good model of the noise for the toy data is easy because I defined the model, but the same isn’t true for the real IMU data. I’ve made my best guess for the process and measurement noise by looking at the coefficient of determination from calibrating the data.</p>
 </div>
 </div>
