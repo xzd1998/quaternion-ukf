@@ -24,5 +24,5 @@ test:
 	@python -m unittest discover $(TEST)
 
 lint:
-	@pylint $(MODULE) 
+	@pylint --rcfile=.pylintrc $(MODULE) 
 
