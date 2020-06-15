@@ -24,14 +24,14 @@ Project Setup
 
 -   Clone repository
 
-``` 
+``` {.sourceCode .bash}
 git clone https://github.com/mattlisle/quaternion-ukf.git
 ```
 
 -   Create a virtual environment and run setup script (python version
     should be &gt;= 3.5.2)
 
-``` 
+``` {.sourceCode .}
 virtualenv --python=/usr/bin/python /path/to/new/virtualenv
 source /path/to/new/virtualenv/bin/activate
 make install
@@ -42,8 +42,8 @@ Usage
 
 There are three sample datasets to run the code on. To run in terminal:
 
-``` 
+``` {.sourceCode .bash}
 make run DATASET=<n>
 ```
 
-Where `<n>` is a number from 1 to 3.
+Where `<n>`{.sourceCode} is a number from 1 to 3.

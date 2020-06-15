@@ -61,6 +61,8 @@ html:
 github:
 	@make html
 	@cp -a build/html/. ../
+	@pandoc -s -o ../../README.md README.rst
+	@sed -iE 's/{.sourceCode.*}//g' ../../README.md
 
 .PHONY: dirhtml
 dirhtml:
