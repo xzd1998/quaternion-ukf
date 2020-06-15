@@ -32,25 +32,33 @@ def rots_to_angles_xyz(rots):
     return roll, pitch, yaw
 
 
-def rots_to_vels(rots, times):
+def rots_to_vels(rots, time_vector):
     """
     Converts rotation matrices over time to angular velocities using the ZYX convention
     
     :param rots: (3, 3, N), N > 1 numpy array of rotation matrices
-    :param times: time vector of length N associated with rotation matrices
+    :param time_vector: time vector of length N associated with rotation matrices
     :return: roll, pitch, and yaw velocities
     """
-    def make_angles_continuous(angles):
-        for row in angles:
-            for i in range(1, row.shape[0]):
-                diff = row[i] - row[i - 1]
-                if np.abs(diff) > np.pi:
-                    row[i] = row[i] - np.sign(diff) * 2 * np.pi
-    roll, pitch, yaw = rots_to_angles_zyx(rots)
-    make_angles_continuous([roll, pitch, yaw])
-    dts = np.diff(times)
-    droll, dpitch, dyaw = (np.diff(roll) / dts, np.diff(pitch) / dts, np.diff(yaw) / dts)
-    return np.vstack((droll, dpitch, dyaw)), times[:-1]
+    smooth_factor = 8
+    velocities = np.zeros((3, 1, rots.shape[-1] - smooth_factor))
+    indexer = np.ones(velocities.shape[-1], dtype=bool)
+    for i in range(smooth_factor, rots.shape[-1]):
+        rot_diff = np.matmul(rots[..., i], rots[..., i - smooth_factor].T)
+        theta = np.arccos((np.trace(rot_diff) - 1) / 2)
+        if np.isnan(theta):
+            indexer[i - smooth_factor] = False
+        dt = time_vector[i] - time_vector[i - smooth_factor]
+        denom = 2 * np.sin(theta)
+        w_hat = ((theta / dt) / denom * (rot_diff - rot_diff.T)
+                 if denom != 0 else np.zeros((3, 3)))
+
+        # Got correspondence from first set of data
+        velocities[0, 0, i - smooth_factor] = w_hat[2, 1]
+        velocities[1, 0, i - smooth_factor] = w_hat[0, 2]
+        velocities[2, 0, i - smooth_factor] = w_hat[1, 0]
+
+    return velocities.reshape(3, -1), time_vector[smooth_factor // 2: -smooth_factor // 2]
 
 
 def rots_to_accs(rots, noise=None):

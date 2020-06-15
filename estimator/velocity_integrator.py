@@ -28,6 +28,7 @@ class VelocityIntegrator(StateEstimator):
         """
 
         self.rots = np.zeros((3, 3, self.num_data))
+        self.rots[..., 0] = np.identity(3)
         self.quats.append(Quaternions([1, 0, 0, 0]))
 
         for i in range(0, self.num_data - 1):

@@ -80,7 +80,7 @@ class Trainer:
         self.rots, self.imu_data, self.t_imu, self.t_vicon = \
             Trainer.clip_data(rots, imu_data, ts_imu, ts_vicon)
 
-    def train_acc(self):
+    def train_acc(self, plot=True):
         """
         Solves for coefficients for accelerometer data
 
@@ -109,20 +109,22 @@ class Trainer:
             [coefficients[i] * self.imu_data[i] + intercepts[i]] for i in range(NUM_AXES)
         ])
 
-        for i in range(NUM_AXES):
-            plt.scatter(measured[i].reshape(-1), truth[i].reshape(-1))
-            plt.show()
+        if plot:
+            for i in range(NUM_AXES):
+                plt.scatter(measured[i].reshape(-1), truth[i].reshape(-1))
+                plt.show()
 
         coef_determination = np.var(measured - truth, axis=2)
 
-        for i in range(3):
-            plt.plot(self.t_vicon.reshape(-1), measured[i].reshape(-1))
-            plt.plot(self.t_vicon.reshape(-1), truth[i].reshape(-1))
-            plt.show()
+        if plot:
+            for i in range(3):
+                plt.plot(self.t_vicon.reshape(-1), measured[i].reshape(-1))
+                plt.plot(self.t_vicon.reshape(-1), truth[i].reshape(-1))
+                plt.show()
 
         return coefficients, intercepts, coef_determination
 
-    def train_vel(self):
+    def train_vel(self, plot=True):
         """
         Solves for coefficients for accelerometer data
 
@@ -132,13 +134,11 @@ class Trainer:
         coefficients = np.zeros(NUM_AXES)
         intercepts = np.zeros(NUM_AXES)
         vels, t_vicon = utilities.rots_to_vels(self.rots, self.t_vicon)
-        vels = utilities.moving_average(vels, 9)
         vels, imu_data, _, t_vicon = Trainer.clip_data(vels, self.imu_data, self.t_imu, t_vicon)
 
         for i in range(3):
             training_data = np.vstack(
-                [imu_data[i + NUM_AXES], np.ones(imu_data[i + NUM_AXES].shape[-1])]
-            ).T
+                [imu_data[i + NUM_AXES], np.ones(imu_data[i + NUM_AXES].shape[-1])]).T
             coefficients[i], intercepts[i] = np.linalg.lstsq(training_data, vels[i], rcond=None)[0]
 
         coefficients[-1] = coefficients[1]
@@ -149,11 +149,12 @@ class Trainer:
         coef_determination = np.var(measured - vels, axis=2)
 
         measured = measured.reshape(NUM_AXES, -1)
-        for i in range(NUM_AXES):
-            plt.plot(t_vicon.reshape(-1), measured[i].reshape(-1))
-            plt.plot(t_vicon.reshape(-1), vels[i].reshape(-1))
-            plt.legend(["Measured", "Truth"])
-            plt.show()
+        if plot:
+            for i in range(NUM_AXES):
+                plt.plot(t_vicon.reshape(-1), measured[i].reshape(-1))
+                plt.plot(t_vicon.reshape(-1), vels[i].reshape(-1))
+                plt.legend(["Measured", "Truth"])
+                plt.show()
 
         return coefficients, intercepts, coef_determination
 
