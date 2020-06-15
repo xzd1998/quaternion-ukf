@@ -24,5 +24,5 @@ unit:
 	@python -m unittest discover $(TEST)
 
 lint:
-	@pylint --rcfile=.pylintrc --disable=E0611 $(MODULE) 
+	@pylint --rcfile=.pylintrc $(MODULE) 
 
