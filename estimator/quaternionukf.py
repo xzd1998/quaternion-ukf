@@ -23,12 +23,7 @@ new infrastructure I've built to test this new implementation:
     # Filter the data and plot the comparison
     estimator = QuaternionUkf(data_source, R, Q)
     estimator.estimate_state()
-    estimator.plot_comparison(
-       estimator.rots,
-       estimator.ts_imu,
-       data_source.rots_vicon,
-       data_source.ts_vicon
-    )
+    estimator.evaluate_estimation(plot=True)
 """
 
 import numpy as np
