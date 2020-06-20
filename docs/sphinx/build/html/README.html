@@ -1,0 +1,471 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Quaternion UKF &mdash; QuaternionUkf 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="estimator" href="modules.html" />
+    <link rel="prev" title="Welcome to QuaternionUkf’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> QuaternionUkf
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quaternion UKF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#project-setup">Project Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implementation-details">Implementation Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sensor-data-preprocessing">Sensor data preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ukf-implementation">UKF implementation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#sigma-points">Sigma points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#process-model">Process Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#measurement-model">Measurement Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kalman-update">Kalman Update</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#results">Results</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphs-manufactured-data">Graphs: Manufactured Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphs-imu-dataset-2">Graphs: IMU Dataset 2</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">estimator</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuaternionUkf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Quaternion UKF</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/README.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="quaternion-ukf">
+<h1>Quaternion UKF<a class="headerlink" href="#quaternion-ukf" title="Permalink to this headline">¶</a></h1>
+<p>Implentation of an unscented Kalman filter for orientation tracking of a robot (e.g. a quadrotor or drone).</p>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>This implementation of a UKF for tracking orientation of a drone with gyro and accelerometer data follows closely that described in the paper “A Quaternion-based Unscented Kalman Filter for Orientation Tracking” by Edgar Kraft.</p>
+<p>This project was completed as part of ESE 650: Learning in Robotics at the University of Pennsylvania, though it has been tweaked, and additional infrastructure has been built since then. This additional infrastructure includes a means to manufacture toy data to validate that the filter is indeed working properly.</p>
+</div>
+<div class="section" id="project-setup">
+<h2>Project Setup<a class="headerlink" href="#project-setup" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Clone repository</p></li>
+</ul>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>git clone https://github.com/mattlisle/quaternion-ukf.git
+</pre></div>
+</td></tr></table></div>
+<ul class="simple">
+<li><p>Create a virtual environment and run setup script (python version should be &gt;= 3.6)</p></li>
+</ul>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">virtualenv</span> <span class="o">--</span><span class="n">python</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">python</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">new</span><span class="o">/</span><span class="n">virtualenv</span>
+<span class="n">source</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">new</span><span class="o">/</span><span class="n">virtualenv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">make</span> <span class="n">install</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>There are three sample datasets to run the code on. To run in terminal:</p>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span></span>make run <span class="nv">DATASET</span><span class="o">=</span>&lt;n&gt;
+</pre></div>
+</td></tr></table></div>
+<p>Where <code class="code docutils literal notranslate"><span class="pre">&lt;n&gt;</span></code> is a number from 1 to 3.</p>
+</div>
+<div class="section" id="implementation-details">
+<h2>Implementation Details<a class="headerlink" href="#implementation-details" title="Permalink to this headline">¶</a></h2>
+<p>As mentioned above, the implementation follows the example in the paper fairly closely. The goal is to fuse accelerometer and gyro data to get the best possible estimate of orientation, in terms of roll, pitch, and yaw.</p>
+<div class="section" id="sensor-data-preprocessing">
+<h3>Sensor data preprocessing<a class="headerlink" href="#sensor-data-preprocessing" title="Permalink to this headline">¶</a></h3>
+<p>The first step in this process is to convert the IMU data from some digital reading to the corresponding value with the correct units. These sensors are manufactured to be fairly linear in the range in which the drone operates, so a linear regression model is a reasonable fit for calibrating the data, which leads to the following equation:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{\beta} = \left(A^{\top} A \right)^{-1} A^{\top}\textbf{y}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\boldsymbol{\beta}\)</span> represents a vector made of essentially the slope and intercept for fitting the IMU data (which is what we want).</p></li>
+<li><p><strong>A</strong> has two columns, the first is one dimension of the IMU data, e.g. the accelerometer’s x-component</p></li>
+<li><p><strong>y</strong> is the ground truth, which we don’t quite have yet</p></li>
+</ul>
+<p>Okay, so we’ve got the equation, (which numpy implements for us with <code class="code docutils literal notranslate"><span class="pre">np.linalg.lstsq</span></code> ), but there’s still the unknown of how to get the ground truth data to fit the IMU data to. That’s where the vicon data comes in, which is a time series of rotation matrices over approximately the same timespan as the IMU data. Getting the expected accelerometer data is quite straightforward because the accelerometer is a measurement of the acceleration felt along the robot’s z-axis. In equation form:</p>
+<div class="math notranslate nohighlight">
+\[\hat{\textbf{g}}^r = R_w^r \hat{\textbf{g}}^w\]</div>
+<p>Gravity in the world frame is just the world frame’s z-axis, and the vicon rotations define the rotation between the world and robot frames. However, solving for the rotational velocity is a bit trickier. If we assume that the angular velocity is constant, then we can say the following:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\dot{R} &amp;= \textbf{S}(\boldsymbol{\omega})R \\
+R(t) &amp;= \exp \Big( \textbf{S}(\boldsymbol{\omega}) \Delta t \Big) R_0 \\
+R_1 R_0^{\top} &amp;= \exp \Big( \textbf{S}(\boldsymbol{\omega}) \Delta t \Big)\end{split}\]</div>
+<p>For convenience, let’s call <span class="math notranslate nohighlight">\(R_1 R_0^{\top}\)</span> something else:</p>
+<div class="math notranslate nohighlight">
+\[R_\Delta = \exp \Big( \textbf{S}(\boldsymbol{\omega}) \Delta t \Big)\]</div>
+<p>The left side of that equation represents the rotation in a given timestep, which can be represented by an axis and an angle:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\theta &amp;= \cos^{-1} \left( \frac{\text{Tr}(R_\Delta) - 1}{2} \right) \\
+\textbf{S}(\textbf{u}) &amp;= \frac{1}{2 \sin \theta} \left( R_\Delta - R_\Delta^{\top} \right)\end{split}\]</div>
+<p>We can also convert from axis angle directly to angular velocity, which leads us to a solution we can actually use:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\boldsymbol{\omega} &amp;= \frac{\theta}{\Delta t} \textbf{u} \\
+\textbf{S}(\boldsymbol{\omega}) &amp;= \frac{\theta}{2 \Delta t \sin \theta} \left( R_\Delta - R_\Delta^{\top} \right)\end{split}\]</div>
+<p>So now we have the following relationship where everything on the right side is known.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\boldsymbol{\beta}_a &amp;= \left(A^{\top}A\right)^{-1}A^{\top}\textbf{g}^r \\
+\boldsymbol{\beta}_\omega &amp;= \left(A^{\top}A\right)^{-1}A^{\top}\boldsymbol{\omega}\end{split}\]</div>
+<p>And from these equations we can convert the accelerometer and gyro data to units of acceleration and angular velocity, respectively</p>
+</div>
+<div class="section" id="ukf-implementation">
+<h3>UKF implementation<a class="headerlink" href="#ukf-implementation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="sigma-points">
+<h4>Sigma points<a class="headerlink" href="#sigma-points" title="Permalink to this headline">¶</a></h4>
+<p>There’s one slight difference between this implementation and the paper’s, and that is the multiplier in its equation 36:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{W}_{i, i + n} = \text{columns}(\pm \sqrt{2n(P_{k - 1} + Q)})\]</div>
+<p>Where</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n\)</span> is the number of degrees of freedom in the state</p></li>
+<li><p><span class="math notranslate nohighlight">\(P_{k - 1}\)</span> is the state covariance at the previous timestep</p></li>
+<li><p><span class="math notranslate nohighlight">\(Q\)</span> is the covariance chosen to model the uncertainty of applying the process model</p></li>
+</ul>
+<p>I chose to do this instead:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{W}_{i, i + n} = \text{columns}(\pm \sqrt{n(P_{k - 1} + Q)})\]</div>
+<p>That helped things remain stable. My reasoning as to why doing this could make sense is that the highly non-linear nature of rotations means that taking too wide a sample of the of the Gaussian results in poor reconstruction after the process model, so I use a slightly tighter-than-normal cluster of sigma-points.</p>
+<p>Computing the sigma points from here follows equation 34 in the paper, with the one key difference that the multiplication of quaternions is backward:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathcal{X}_i =
+\begin{pmatrix}
+  q_{\mathcal{W_i}} q_{k - 1} \\
+  \omega_{k - 1} + \omega_{\mathcal{W_i}}
+\end{pmatrix}\end{split}\]</div>
+<p>This multiplication order makes sense because the gyroscope gives angular velocity relative to the world frame, which means that you need to pre-multiply the delta rotation calculated from the angular velocity. I reverse the quaternion multiplication in all parts of the process model compared to what’s in the paper.</p>
+<p>It’s also worth noting that sigma points are often weighted, but I, like the authors of the paper, don’t weight them, though that could possibly improve estimation accuracy as a future feature.</p>
+</div>
+<div class="section" id="process-model">
+<h4>Process Model<a class="headerlink" href="#process-model" title="Permalink to this headline">¶</a></h4>
+<p>The angular velocity sigma points are used to project the quaternion sigma points forward in time with:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathcal{Y}_i =
+\begin{pmatrix}
+  q_\Delta q_{\mathcal{W_i}} q_{k - 1} \\
+  \omega_{k - 1} + \omega_{\mathcal{W_i}}
+\end{pmatrix}\end{split}\]</div>
+<p>The projected sigma points are averaged to obtain the estimated state at the current timestep <span class="math notranslate nohighlight">\(\hat{x}_k^-\)</span>. The quaternion components’ mean is computed using gradient descent, and the angular velocities’ mean by the barycentric mean.</p>
+<p>At this point, we can also compute the estimated state covariance at the current timestep, <span class="math notranslate nohighlight">\(P_k^-\)</span>, from the process model. That’s simply the matrix whose columns are the projected sigma points minus the mean of the projected sigma points multiplied by its transpose and divided by its rank. In other words, it’s equation 57 in the paper:</p>
+<div class="math notranslate nohighlight">
+\[P_k^- = \frac{1}{2n} \sum_{i = 1}^{2n} (\mathcal{Y}_i - \hat{x}_k^-)(\mathcal{Y}_i - \hat{x}_k^-)^\top\]</div>
+<p>Where, <span class="math notranslate nohighlight">\((\mathcal{X}_i - \hat{x}_k^-)\)</span> represents a <em>column</em> of the matrix and the error of the process model, i.e. the deviation from the mean. The above equation becomes much simpler in code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">covariance_matrix</span> <span class="o">=</span> <span class="n">error_matrix</span> <span class="o">@</span> <span class="n">error_matrix</span><span class="o">.</span><span class="n">T</span>
+</pre></div>
+</div>
+<p>Where <em>i</em>th column of the <code class="code docutils literal notranslate"><span class="pre">error_matrix</span></code> is the same as <span class="math notranslate nohighlight">\((\mathcal{X}_i - \hat{x}_k^-)\)</span>.</p>
+</div>
+<div class="section" id="measurement-model">
+<h4>Measurement Model<a class="headerlink" href="#measurement-model" title="Permalink to this headline">¶</a></h4>
+<p>With the projected sigma points from the first step, we can estimate the measurement that we would expect to have gotten at the current timestep. Like everything else in the implementation, it’s broken into the orientation and velocity components of the state.</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{Z_i} =
+\begin{pmatrix}
+  q_{\mathcal{Y}_i} q_{acc} q_{\mathcal{Y}_i}^{-1}
+  \omega_{\mathcal{Y}_i}
+\end{pmatrix}\]</div>
+<p>My notation here is slightly different from the paper, so for clarity:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathcal{Z_i}\)</span> is the measurement we would expect if project sigma point <em>i</em> were the state of the robot</p></li>
+<li><p><span class="math notranslate nohighlight">\(q_{\mathcal{Y}_i}\)</span> is the quaternion component of the <em>i</em>th projected sigma point</p></li>
+<li><p><span class="math notranslate nohighlight">\(q_{acc}\)</span> is the accelerometer measurement as a quaternion, i.e. <span class="math notranslate nohighlight">\(0\textbf{w} + a_x\textbf{i} + a_y\textbf{j} + a_z\textbf{z}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\omega_{\mathcal{Y}_i}\)</span> is the angular velocity component of the <em>i</em>th projected sigma point</p></li>
+</ul>
+<p>The estimated measurement is simply the barycentric mean of the above matrix:</p>
+<div class="math notranslate nohighlight">
+\[\hat{z}_k = \frac{1}{2n} \sum_{i = 1}^{2n} \mathcal{Z_i}\]</div>
+<p>And the uncertainty of the predicted measurement is the covariance of the measurement matrix</p>
+<div class="math notranslate nohighlight">
+\[P_{\nu\nu} = R + \frac{1}{2n} \sum_{i = 1}^{2n} (\mathcal{Z}_i - \hat{z}_k)(\mathcal{Z}_i - \hat{z}_k)^\top\]</div>
+<p>Where <span class="math notranslate nohighlight">\(R\)</span> is the modeled measurement model uncertainty. We can also calculate the cross correlation matrix at this point with:</p>
+<div class="math notranslate nohighlight">
+\[P_{xz} = \frac{1}{2n} \sum_{i = 1}^{2n} (\mathcal{Y}_i - \hat{x}_k^-)(\mathcal{Z}_i - \hat{z}_k)^\top\]</div>
+</div>
+<div class="section" id="kalman-update">
+<h4>Kalman Update<a class="headerlink" href="#kalman-update" title="Permalink to this headline">¶</a></h4>
+<p>We now have everything to need to (finally) finish our estimation of the state at this timestep. The Kalman gain is calculated from the two covariance matrices in the previous step:</p>
+<div class="math notranslate nohighlight">
+\[K_k = P_{xz}P_{\nu\nu}^{-1}\]</div>
+<p>And the update is made with:</p>
+<div class="math notranslate nohighlight">
+\[\hat{x}_k = \hat{x}_k^- + K_k(z_k - \hat{z}_k)\]</div>
+<p>There’s one catch though: the quaternion and angular velocity components have to be updated separately:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}v &amp;= K_k(z_k - \hat{z}_k) \\
+q_{correction} &amp;= \text{Quaternion}(v_r) \\
+\hat{q}_k &amp;= \hat{q}_k^- q_{correction} \\
+\hat{\omega}_k &amp;= \hat{\omega}_k^- + v_\omega \\\end{split}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(v\)</span> is the 6D correction vector</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_r\)</span> is 3D rotational part of the vector</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_\omega\)</span> is 3D angular velocity part of the vector</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{q}_k\)</span> is the quaternion part of <span class="math notranslate nohighlight">\(\hat{x}_k\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{\omega}_k\)</span> is the angular velocity part of <span class="math notranslate nohighlight">\(\hat{x}_k\)</span></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="results">
+<h3>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h3>
+<p>There are two sets of results worth touching on: those of the manufactured data and those of one of the datasets recorded from an actual IMU. You can see the performance on the other datasets by running the code as described above in the usage section.</p>
+<table class="colwidths-auto docutils align-default" id="id1">
+<caption><span class="caption-text">RMSE: Manufactured data</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filter</p></th>
+<th class="head"><p>Roll</p></th>
+<th class="head"><p>Pitch</p></th>
+<th class="head"><p>Yaw</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>RollPitchCalculator</p></td>
+<td><p>0.002</p></td>
+<td><p>0.002</p></td>
+<td><p>-.—</p></td>
+</tr>
+<tr class="row-odd"><td><p>VelocityIntegrator</p></td>
+<td><p>0.624</p></td>
+<td><p>0.449</p></td>
+<td><p>0.311</p></td>
+</tr>
+<tr class="row-even"><td><p>QuaternionUkf</p></td>
+<td><p>0.001</p></td>
+<td><p>0.002</p></td>
+<td><p>0.105</p></td>
+</tr>
+</tbody>
+</table>
+<p>I manufactured this data in such a way that the accelerometer was very accurate and the gyro had a lot of drift. The fact that the filter is able to reduce to root mean squared error in yaw compared to integrating the gyro data shows that the UKF implementation is working, at least to some degree.</p>
+<table class="colwidths-auto docutils align-default" id="id2">
+<caption><span class="caption-text">RMSE: IMU Dataset</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Filter</p></th>
+<th class="head"><p>Roll</p></th>
+<th class="head"><p>Pitch</p></th>
+<th class="head"><p>Yaw</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>RollPitchCalculator</p></td>
+<td><p>0.067</p></td>
+<td><p>0.036</p></td>
+<td><p>-.—</p></td>
+</tr>
+<tr class="row-odd"><td><p>VelocityIntegrator</p></td>
+<td><p>0.425</p></td>
+<td><p>0.126</p></td>
+<td><p>0.490</p></td>
+</tr>
+<tr class="row-even"><td><p>QuaternionUkf</p></td>
+<td><p>0.062</p></td>
+<td><p>0.034</p></td>
+<td><p>0.411</p></td>
+</tr>
+</tbody>
+</table>
+<p>On the real data above, you can see that the UKF beats the methods that rely on a single source of data across the board. This is what we expect: as long as we’ve modeled the uncertainty of the process and measurement models reasonably well, fusing data from two sensors should <em>always</em> be better than relying on one of those two.</p>
+<p>The below graphs show how well the UKF does at tracking the truth compared to the other implementations.</p>
+<div class="section" id="graphs-manufactured-data">
+<h4>Graphs: Manufactured Data<a class="headerlink" href="#graphs-manufactured-data" title="Permalink to this headline">¶</a></h4>
+<img alt="_images/roundtripplanner_roll.png" src="_images/roundtripplanner_roll.png" />
+<img alt="_images/roundtripplanner_pitch.png" src="_images/roundtripplanner_pitch.png" />
+<img alt="_images/roundtripplanner_yaw.png" src="_images/roundtripplanner_yaw.png" />
+</div>
+<div class="section" id="graphs-imu-dataset-2">
+<h4>Graphs: IMU Dataset 2<a class="headerlink" href="#graphs-imu-dataset-2" title="Permalink to this headline">¶</a></h4>
+<img alt="_images/dataset_2_roll.png" src="_images/dataset_2_roll.png" />
+<img alt="_images/dataset_2_pitch.png" src="_images/dataset_2_pitch.png" />
+<img alt="_images/dataset_2_yaw.png" src="_images/dataset_2_yaw.png" />
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="estimator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to QuaternionUkf’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Matt Lisle
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

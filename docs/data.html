@@ -85,7 +85,7 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="includeme.html">Quaternion UKF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Quaternion UKF</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">estimator</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="estimator.html">estimator</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="estimator.html#subpackages">Subpackages</a><ul class="current">
@@ -532,7 +532,7 @@ Most are conversions between different types of rotations.</p>
 
 <dl class="py function">
 <dt id="estimator.data.utilities.plot_data_comparison">
-<code class="sig-name descname">plot_data_comparison</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_labels</span></em>, <em class="sig-param"><span class="n">y_labels</span></em>, <em class="sig-param"><span class="n">time_vectors</span></em>, <em class="sig-param"><span class="n">datasets</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#plot_data_comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.plot_data_comparison" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_data_comparison</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_labels</span></em>, <em class="sig-param"><span class="n">y_labels</span></em>, <em class="sig-param"><span class="n">time_vectors</span></em>, <em class="sig-param"><span class="n">datasets</span></em>, <em class="sig-param"><span class="n">rcparams</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/estimator/data/utilities.html#plot_data_comparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#estimator.data.utilities.plot_data_comparison" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots overlapping time series datasets together for comparison</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -541,6 +541,8 @@ Most are conversions between different types of rotations.</p>
 <li><p><strong>y_labels</strong> – labels for the y-axis of each plot</p></li>
 <li><p><strong>time_vectors</strong> – time vector associated with each dataset</p></li>
 <li><p><strong>datasets</strong> – data to plot</p></li>
+<li><p><strong>rcparams</strong> – matplotlib parameters to change, e.g., fontsize</p></li>
+<li><p><strong>path</strong> – where to save the figures once generated</p></li>
 </ul>
 </dd>
 </dl>

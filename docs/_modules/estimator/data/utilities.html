@@ -84,7 +84,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../includeme.html">Quaternion UKF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Quaternion UKF</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules.html">estimator</a></li>
 </ul>
 
@@ -343,7 +343,7 @@
     <span class="k">return</span> <span class="n">rots</span></div>
 
 
-<div class="viewcode-block" id="plot_data_comparison"><a class="viewcode-back" href="../../../data.html#estimator.data.utilities.plot_data_comparison">[docs]</a><span class="k">def</span> <span class="nf">plot_data_comparison</span><span class="p">(</span><span class="n">data_labels</span><span class="p">,</span> <span class="n">y_labels</span><span class="p">,</span> <span class="n">time_vectors</span><span class="p">,</span> <span class="n">datasets</span><span class="p">):</span>
+<div class="viewcode-block" id="plot_data_comparison"><a class="viewcode-back" href="../../../data.html#estimator.data.utilities.plot_data_comparison">[docs]</a><span class="k">def</span> <span class="nf">plot_data_comparison</span><span class="p">(</span><span class="n">data_labels</span><span class="p">,</span> <span class="n">y_labels</span><span class="p">,</span> <span class="n">time_vectors</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">rcparams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plots overlapping time series datasets together for comparison</span>
 <span class="sd">    </span>
@@ -351,7 +351,12 @@
 <span class="sd">    :param y_labels: labels for the y-axis of each plot</span>
 <span class="sd">    :param time_vectors: time vector associated with each dataset</span>
 <span class="sd">    :param datasets: data to plot</span>
+<span class="sd">    :param rcparams: matplotlib parameters to change, e.g., fontsize</span>
+<span class="sd">    :param path: where to save the figures once generated</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">rcparams</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">rcparams</span><span class="p">)</span>
 
     <span class="n">n_plots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_labels</span><span class="p">)</span>
     <span class="n">n_sets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
@@ -368,6 +373,13 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; Angle [rad]&quot;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">data_labels</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="c1"># manager = plt.get_current_fig_manager()</span>
+            <span class="c1"># manager.resize(*manager.window.maxsize())</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.png&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">y_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()),</span>
+                        <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
