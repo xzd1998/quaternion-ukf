@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from data.datastore import DataStore
+from estimator.data.datastore import DataStore
 from estimator.constants import STATE_DOF
 from estimator.data.datamaker import DataMaker
 from estimator.data.trajectoryplanner import RoundTripPlanner
