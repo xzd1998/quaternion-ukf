@@ -44,7 +44,7 @@ class QuaternionUkfTest(unittest.TestCase):
 
     @staticmethod
     def run_test_for_dataset(dataset_num):
-        data_source = DataStore(dataset_number=dataset_num, path_to_data="../estimator/data/")
+        data_source = DataStore(dataset_number=dataset_num, path_to_data="./estimator/data/")
         R = np.identity(STATE_DOF)
         R *= .05
         Q = np.copy(R) / 2
