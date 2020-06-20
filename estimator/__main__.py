@@ -3,10 +3,11 @@ Demo script when the module is run
 """
 
 import argparse
+import os
 
 import numpy as np
 
-from estimator.constants import STATE_DOF
+from estimator.constants import STATE_DOF, RCPARAMS, PATH
 from estimator.data import utilities
 from estimator.data.datamaker import DataMaker
 from estimator.data.datastore import DataStore
@@ -33,15 +34,17 @@ if __name__ == "__main__":
 
     if not args.dataset_num:
         planner = RoundTripPlanner(acc_magnitude=0.0005, noise_stddev=0.02, drift_stddev=0.002)
+        figure_prefix = planner.__class__.__name__.lower()
         data_source = DataMaker(planner)
         R[:3, :3] *= planner.noise_stddev ** 2
         R[3:, 3:] *= np.var(planner.drift)
         Q = np.copy(R)
     else:
         data_source = DataStore(dataset_number=args.dataset_num, path_to_data="estimator/data/")
+        figure_prefix = "dataset_%s" % args.dataset_num
         R *= .05
-        Q = np.copy(R)
-        R[:3, :3] *= 10
+        Q = np.copy(R) / 2
+        R[:3, :3] *= 15
 
     print("Running estimators...")
 
@@ -69,16 +72,16 @@ if __name__ == "__main__":
     max_length = max(len(name) for name in legend_labels)
     for estimator in estimators:
         NAME = estimator.__class__.__name__
-        rmse_list = ["%.4f" % rmse for rmse in estimator.evaluate_estimation()]
-        print(
-            "  {} RMSE: {}{}"
-            .format(NAME, " " * (max_length - len(NAME)), rmse_list)
-            .replace("'", "")
-        )
+        rmse_list = ["%.3f" % rmse for rmse in estimator.evaluate_estimation()]
+        if NAME == "RollPitchCalculator":
+            rmse_list[-1] = "-.---"
+        print("  {} RMSE: {}{}"
+              .format(NAME, " " * (max_length - len(NAME)), rmse_list)
+              .replace("'", ""))
 
-    utilities.plot_data_comparison(
-        legend_labels,
-        ["Roll", "Pitch", "Yaw"],
-        time_vectors,
-        angles
-    )
+    utilities.plot_data_comparison(legend_labels,
+                                   ["Roll", "Pitch", "Yaw"],
+                                   time_vectors,
+                                   angles,
+                                   RCPARAMS,
+                                   os.path.join(PATH, figure_prefix))

@@ -192,7 +192,7 @@ def angles_to_rots_xyz(roll, pitch, yaw):
     return rots
 
 
-def plot_data_comparison(data_labels, y_labels, time_vectors, datasets):
+def plot_data_comparison(data_labels, y_labels, time_vectors, datasets, rcparams=None, path=None):
     """
     Plots overlapping time series datasets together for comparison
     
@@ -200,7 +200,12 @@ def plot_data_comparison(data_labels, y_labels, time_vectors, datasets):
     :param y_labels: labels for the y-axis of each plot
     :param time_vectors: time vector associated with each dataset
     :param datasets: data to plot
+    :param rcparams: matplotlib parameters to change, e.g., fontsize
+    :param path: where to save the figures once generated
     """
+
+    if rcparams:
+        plt.rcParams.update(rcparams)
 
     n_plots = len(y_labels)
     n_sets = len(datasets)
@@ -217,6 +222,13 @@ def plot_data_comparison(data_labels, y_labels, time_vectors, datasets):
         plt.ylabel(y_labels[i] + " Angle [rad]")
         plt.legend(data_labels)
         plt.grid(True)
+        if path:
+            # manager = plt.get_current_fig_manager()
+            # manager.resize(*manager.window.maxsize())
+            fig = plt.gcf()
+            fig.set_size_inches(16, 9)
+            plt.savefig("{}_{}.png".format(path, y_labels[i].lower()),
+                        bbox_inches='tight')
     plt.show()
 
 

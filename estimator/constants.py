@@ -5,3 +5,7 @@ NUM_AXES = 3
 
 # State contains data for orientation and angular velocity
 STATE_DOF = NUM_AXES * 2
+
+# Matplotlib params
+RCPARAMS = {'font.size': 20}
+PATH = "docs/graphs"
