@@ -2,7 +2,7 @@
 from setuptools import setup
 
 requirements = [
-  "numpy==1.17.4",
+  "numpy==1.22.0",
   "scipy==1.4.1",
   "matplotlib==3.0.3",
   "lazy==1.4",
